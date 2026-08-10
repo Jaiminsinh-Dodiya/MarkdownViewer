@@ -1,0 +1,117 @@
+{
+  "name": "markdown-viewer",
+  "displayName": "Markdown Viewer",
+  "description": "A clean, fast, secure preview for Markdown files, rendered natively inside VS Code.",
+  "version": "0.1.0",
+  "publisher": "Jaiminsinh Dodiya",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "keywords": [
+    "markdown",
+    "preview",
+    "viewer",
+    "documentation"
+  ],
+  "activationEvents": [
+    "onLanguage:markdown"
+  ],
+  "main": "./out/src/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "markdownViewer.openPreview",
+        "title": "Markdown Viewer: Open Preview",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "markdownViewer.openPreviewToSide",
+        "title": "Markdown Viewer: Open Preview to the Side",
+        "icon": "$(open-preview)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "markdownViewer.openPreviewToSide",
+          "when": "editorLangId == markdown",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "markdownViewer.openPreview",
+          "when": "editorLangId == markdown"
+        },
+        {
+          "command": "markdownViewer.openPreviewToSide",
+          "when": "editorLangId == markdown"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "markdownViewer.openPreviewToSide",
+        "key": "ctrl+k v",
+        "mac": "cmd+k v",
+        "when": "editorLangId == markdown"
+      }
+    ],
+    "configuration": {
+      "title": "Markdown Viewer",
+      "properties": {
+        "markdownViewer.syntaxHighlighting": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable syntax highlighting for fenced code blocks."
+        },
+        "markdownViewer.allowHtml": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow raw HTML in Markdown source to be rendered (sanitized before display)."
+        },
+        "markdownViewer.maxContentWidth": {
+          "type": "number",
+          "default": 900,
+          "description": "Maximum width, in pixels, of the rendered Markdown content."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src test",
+    "pretest": "npm run compile && npm run lint",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^30.0.0",
+    "@types/markdown-it": "^14.1.2",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@vscode/test-electron": "^2.3.9",
+    "@vscode/vsce": "^2.24.0",
+    "eslint": "^8.56.0",
+    "glob": "^13.0.6",
+    "mocha": "^10.8.2",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "dompurify": "^3.0.9",
+    "highlight.js": "^11.9.0",
+    "jsdom": "^24.0.0",
+    "markdown-it": "^14.0.0",
+    "markdown-it-task-lists": "^2.1.1"
+  }
+}
