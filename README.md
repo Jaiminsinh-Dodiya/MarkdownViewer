@@ -97,13 +97,28 @@ The preview renders inside a VS Code Webview with security treated as a first-cl
 
 ### Prerequisites
 
-- Node.js and npm
+- Node.js 18+ and npm 9+
 - Visual Studio Code
 
-### Setup
+### Quick Setup (one command)
+
+Clone the repo and run the setup script — it checks prerequisites, installs dependencies, compiles TypeScript, runs the linter, and verifies the build output:
+
+```bash
+git clone https://github.com/Jaiminsinh-Dodiya/MarkdownViewer.git
+cd MarkdownViewer
+node scripts/setup.js
+```
+
+That's it. The script handles everything and prints clear errors if anything goes wrong (including automatic retries for flaky networks).
+
+> **Tip:** After the first `npm install`, you can also run `npm run setup` instead of `node scripts/setup.js`.
+
+### Manual Setup (if you prefer)
 
 ```bash
 npm install
+npm run compile
 ```
 
 ### Run the extension
