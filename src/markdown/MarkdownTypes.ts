@@ -28,6 +28,12 @@ export interface MarkdownRenderOptions {
    * about the filesystem or VS Code URIs.
    */
   resolveResourcePath?: (rawPath: string) => string;
+  /** Whether to show extracted frontmatter as a property block. */
+  showFrontmatter: boolean;
+  /** Whether to render math equations using KaTeX. */
+  enableMath: boolean;
+  /** Whether to render Mermaid diagrams. */
+  enableMermaid: boolean;
 }
 
 /** A single heading extracted from the rendered document. */
@@ -44,6 +50,8 @@ export interface RenderedMarkdown {
   headings: MarkdownHeading[];
   /** Non-fatal problems encountered while rendering (e.g. unknown code language). */
   warnings: string[];
+  /** The extracted YAML frontmatter block (if any). */
+  frontmatter?: string;
 }
 
 /** Thrown by the engine only for truly unrecoverable input; the engine should
@@ -58,5 +66,8 @@ export class MarkdownRenderError extends Error {
 export const DEFAULT_RENDER_OPTIONS: MarkdownRenderOptions = {
   allowHtml: false,
   syntaxHighlighting: true,
-  sanitizeHtml: true
+  sanitizeHtml: true,
+  showFrontmatter: true,
+  enableMath: true,
+  enableMermaid: true
 };

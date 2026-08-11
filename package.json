@@ -79,6 +79,21 @@
           "type": "number",
           "default": 900,
           "description": "Maximum width, in pixels, of the rendered Markdown content."
+        },
+        "markdownViewer.showFrontmatter": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show YAML frontmatter as a properties card at the top of the preview."
+        },
+        "markdownViewer.mermaid": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Mermaid diagram rendering in fenced code blocks."
+        },
+        "markdownViewer.math": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable KaTeX math rendering for $inline$ and $$block$$ expressions."
         }
       }
     }
@@ -109,10 +124,18 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
+    "@traptitech/markdown-it-katex": "^3.6.0",
     "dompurify": "^3.0.9",
     "highlight.js": "^11.9.0",
     "jsdom": "^24.0.0",
+    "katex": "^0.16.9",
     "markdown-it": "^14.0.0",
-    "markdown-it-task-lists": "^2.1.1"
+    "markdown-it-emoji": "^3.0.0",
+    "markdown-it-footnote": "^4.0.0",
+    "markdown-it-front-matter": "^0.2.4",
+    "markdown-it-sub": "^2.0.0",
+    "markdown-it-sup": "^2.0.0",
+    "markdown-it-task-lists": "^2.1.1",
+    "mermaid": "^11.16.1"
   }
 }

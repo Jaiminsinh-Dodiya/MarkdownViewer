@@ -15,6 +15,7 @@ export function generateNonce(): string {
  * - Images may load from the Webview's own resource scheme (local files
  *   resolved via asWebviewUri) or over https (remote images in Markdown).
  * - Styles are restricted to the Webview's own stylesheet plus the nonce.
+ * - Fonts are allowed from the Webview resource scheme (for KaTeX fonts).
  * - No frames, connect, or object sources are permitted at all.
  *
  * This is deliberately restrictive. Markdown source content is never
@@ -25,8 +26,8 @@ export function buildContentSecurityPolicy(webview: vscode.Webview, nonce: strin
   return [
     `default-src 'none'`,
     `img-src ${webview.cspSource} https: data:`,
-    `style-src ${webview.cspSource} 'nonce-${nonce}'`,
+    `style-src ${webview.cspSource} 'nonce-${nonce}' 'unsafe-inline'`,
     `script-src 'nonce-${nonce}'`,
-    `font-src ${webview.cspSource}`
+    `font-src ${webview.cspSource} data:`
   ].join('; ');
 }

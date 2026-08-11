@@ -52,6 +52,7 @@ export class MarkdownPreviewProvider {
         enableScripts: true,
         localResourceRoots: [
           vscode.Uri.joinPath(this.context.extensionUri, 'media'),
+          vscode.Uri.joinPath(this.context.extensionUri, 'node_modules', 'katex', 'dist'),
           ...computeLocalResourceRoots(document.uri)
         ],
         retainContextWhenHidden: true
@@ -106,6 +107,9 @@ export class MarkdownPreviewProvider {
 
   private renderInto(panel: vscode.WebviewPanel, document: vscode.TextDocument): void {
     const config = vscode.workspace.getConfiguration('markdownViewer', document.uri);
+    const enableMath = config.get<boolean>('math', true);
+    const enableMermaid = config.get<boolean>('mermaid', true);
+
     const options: MarkdownRenderOptions = {
       ...DEFAULT_RENDER_OPTIONS,
       allowHtml: config.get<boolean>('allowHtml', DEFAULT_RENDER_OPTIONS.allowHtml),
@@ -113,6 +117,9 @@ export class MarkdownPreviewProvider {
         'syntaxHighlighting',
         DEFAULT_RENDER_OPTIONS.syntaxHighlighting
       ),
+      showFrontmatter: config.get<boolean>('showFrontmatter', true),
+      enableMath,
+      enableMermaid,
       resolveResourcePath: (rawPath: string) =>
         resolveWebviewResourcePath(panel.webview, document.uri, rawPath)
     };
@@ -124,7 +131,9 @@ export class MarkdownPreviewProvider {
       panel.webview.html = getWebviewHtml(panel.webview, this.context.extensionUri, {
         bodyHtml: `<p class="markdown-viewer-error">The Markdown preview could not be rendered.</p>`,
         maxContentWidth: config.get<number>('maxContentWidth', 900),
-        warnings: []
+        warnings: [],
+        enableMath,
+        enableMermaid
       });
       return;
     }
@@ -132,7 +141,9 @@ export class MarkdownPreviewProvider {
     panel.webview.html = getWebviewHtml(panel.webview, this.context.extensionUri, {
       bodyHtml: rendered.html,
       maxContentWidth: config.get<number>('maxContentWidth', 900),
-      warnings: rendered.warnings
+      warnings: rendered.warnings,
+      enableMath,
+      enableMermaid
     });
   }
 

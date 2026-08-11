@@ -134,4 +134,40 @@ suite('MarkdownItEngine', () => {
     const result = render('```cobol\nDISPLAY "HI".\n```');
     assert.match(result.html, /<pre data-lang="cobol">/);
   });
+
+  test('renders Obsidian-style callout blocks with data-callout attribute', () => {
+    const result = render('> [!warning] Be careful!\n> Danger ahead');
+    assert.match(result.html, /class="mv-callout"/);
+    assert.match(result.html, /data-callout="warning"/);
+    assert.match(result.html, /mv-callout-title/);
+  });
+
+  test('renders footnotes and footnote references', () => {
+    const result = render('Here is a note[^1].\n\n[^1]: Reference detail.');
+    assert.match(result.html, /class="footnote-ref"/);
+    assert.match(result.html, /class="footnotes"/);
+  });
+
+  test('renders emoji shortcodes into Unicode emoji', () => {
+    const result = render(':smile:');
+    assert.match(result.html, /😄/);
+  });
+
+  test('renders subscript and superscript syntax', () => {
+    const result = render('H~2~O and 2^10^');
+    assert.match(result.html, /<sub>2<\/sub>/);
+    assert.match(result.html, /<sup>10<\/sup>/);
+  });
+
+  test('extracts YAML frontmatter and renders properties card', () => {
+    const result = render('---\ntitle: Hello\nauthor: Me\n---\n\n# Body');
+    assert.match(result.html, /class="mv-frontmatter"/);
+    assert.match(result.html, /mv-frontmatter-key">title/);
+    assert.strictEqual(result.frontmatter?.trim(), 'title: Hello\nauthor: Me');
+  });
+
+  test('renders mermaid fenced blocks as <div class="mermaid">', () => {
+    const result = render('```mermaid\ngraph TD;\n    A-->B;\n```');
+    assert.match(result.html, /<div class="mermaid">graph TD;[\s\S]*<\/div>/);
+  });
 });

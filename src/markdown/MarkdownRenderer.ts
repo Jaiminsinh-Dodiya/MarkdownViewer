@@ -1,6 +1,7 @@
 import MarkdownIt = require('markdown-it');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const taskLists = require('markdown-it-task-lists');
+import { calloutPlugin } from './CalloutPlugin';
 
 type RenderRule = (
   tokens: MarkdownIt.Token[],
@@ -82,12 +83,47 @@ export class MarkdownItEngine implements MarkdownEngine {
     // checkboxes with the `disabled` attribute, matching the spec
     // requirement that task-list checkboxes are display-only in V0.1.
     md.use(taskLists, { enabled: false, label: true, labelAfter: true });
+    
+    md.use(calloutPlugin);
+    
+    const footnote = require('markdown-it-footnote');
+    md.use(footnote);
+    
+    const sub = require('markdown-it-sub');
+    md.use(sub);
+    
+    const sup = require('markdown-it-sup');
+    md.use(sup);
+    
+    const emoji = require('markdown-it-emoji');
+    md.use(emoji);
+    
+    let extractedFrontmatter: string | undefined;
+    const frontMatter = require('markdown-it-front-matter');
+    md.use(frontMatter, (fm: string) => { extractedFrontmatter = fm; });
+    
+    if (options.enableMath) {
+      const mk = require('@traptitech/markdown-it-katex');
+      md.use(mk, { throwOnError: false, errorColor: '#cc0000' });
+    }
 
     this.configureHeadingCapture(md, headings);
     this.configureImageResolution(md, options);
     this.configureExternalLinks(md);
     this.configureResponsiveTables(md);
     this.configureCodeLanguageLabels(md);
+    
+    if (options.enableMermaid) {
+      const defaultFence = md.renderer.rules.fence || ((tokens, idx, opts, _env, self) => self.renderToken(tokens, idx, opts));
+      md.renderer.rules.fence = (tokens, idx, opts, _env, self) => {
+        const token = tokens[idx];
+        const info = token.info ? String(token.info).trim() : '';
+        if (info === 'mermaid') {
+          return `<div class="mermaid">${escapeHtml(token.content)}</div>`;
+        }
+        return defaultFence(tokens, idx, opts, _env, self);
+      };
+    }
 
     let html: string;
     try {
@@ -102,7 +138,7 @@ export class MarkdownItEngine implements MarkdownEngine {
     if (options.sanitizeHtml) {
       try {
         html = DOMPurify.sanitize(html, {
-          ADD_ATTR: ['target', 'rel', 'checked', 'disabled'],
+          ADD_ATTR: ['target', 'rel', 'checked', 'disabled', 'data-callout'],
           ALLOW_UNKNOWN_PROTOCOLS: false
         });
       } catch (err) {
@@ -111,7 +147,22 @@ export class MarkdownItEngine implements MarkdownEngine {
       }
     }
 
-    return { html, headings, warnings };
+    if (options.showFrontmatter && extractedFrontmatter) {
+      const lines = extractedFrontmatter.split('\\n');
+      let fmHtml = '<div class="mv-frontmatter"><div class="mv-frontmatter-title">Properties</div><div class="mv-frontmatter-content">';
+      for (const line of lines) {
+        const colonIndex = line.indexOf(':');
+        if (colonIndex > 0) {
+          const key = escapeHtml(line.slice(0, colonIndex).trim());
+          const value = escapeHtml(line.slice(colonIndex + 1).trim());
+          fmHtml += `<div class="mv-frontmatter-row"><span class="mv-frontmatter-key">${key}</span><span class="mv-frontmatter-value">${value}</span></div>`;
+        }
+      }
+      fmHtml += '</div></div>';
+      html = fmHtml + html;
+    }
+
+    return { html, headings, warnings, frontmatter: extractedFrontmatter };
   }
 
   /**

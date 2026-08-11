@@ -6,14 +6,17 @@ export interface WebviewContentOptions {
   maxContentWidth: number;
   /** Non-fatal rendering warnings to surface subtly at the top of the preview. */
   warnings: string[];
+  /** Whether KaTeX math is enabled (loads KaTeX CSS). */
+  enableMath: boolean;
+  /** Whether Mermaid diagrams are enabled (loads Mermaid JS). */
+  enableMermaid: boolean;
 }
 
 /**
  * Assembles the static HTML shell that hosts rendered Markdown.
  *
- * Kept intentionally simple per spec section 25: a stylesheet, a small
- * client script whose only job is intercepting external link clicks, and
- * the rendered body. No framework, no unnecessary DOM work.
+ * Kept intentionally simple: stylesheets, a small client script, and the
+ * rendered body. No framework, no unnecessary DOM work.
  */
 export function getWebviewHtml(
   webview: vscode.Webview,
@@ -33,6 +36,24 @@ export function getWebviewHtml(
     vscode.Uri.joinPath(extensionUri, 'media', 'preview.js')
   );
 
+  // KaTeX CSS (only when math is enabled)
+  let katexStyleTag = '';
+  if (options.enableMath) {
+    const katexCssUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(extensionUri, 'node_modules', 'katex', 'dist', 'katex.min.css')
+    );
+    katexStyleTag = `<link href="${katexCssUri}" rel="stylesheet">`;
+  }
+
+  // Mermaid JS (only when mermaid is enabled)
+  let mermaidScriptTag = '';
+  if (options.enableMermaid) {
+    const mermaidJsUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(extensionUri, 'media', 'vendor', 'mermaid.min.js')
+    );
+    mermaidScriptTag = `<script nonce="${nonce}" src="${mermaidJsUri}"></script>`;
+  }
+
   const warningsHtml =
     options.warnings.length > 0
       ? `<div class="markdown-viewer-warnings">
@@ -48,6 +69,7 @@ export function getWebviewHtml(
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="${styleUri}" rel="stylesheet">
   <link href="${highlightStyleUri}" rel="stylesheet">
+  ${katexStyleTag}
   <style nonce="${nonce}">
     :root { --markdown-viewer-max-width: ${options.maxContentWidth}px; }
   </style>
@@ -58,6 +80,7 @@ export function getWebviewHtml(
   <div class="markdown-viewer-content" id="markdown-viewer-content">
     ${options.bodyHtml}
   </div>
+  ${mermaidScriptTag}
   <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>
 </html>`;
