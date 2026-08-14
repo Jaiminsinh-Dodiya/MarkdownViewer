@@ -12,13 +12,13 @@
   
   /* Core Colors - Sourced from VS Code Theme */
   --mv-accent: var(--vscode-textLink-foreground, #7f6df2);
-  --mv-bg-primary: var(--vscode-editor-background);
-  --mv-bg-secondary: color-mix(in srgb, var(--vscode-editor-foreground) 5%, transparent);
-  --mv-bg-tertiary: color-mix(in srgb, var(--vscode-editor-foreground) 8%, transparent);
+  --mv-bg-primary: var(--vscode-editor-background, #1e1e1e);
+  --mv-bg-secondary: color-mix(in srgb, var(--vscode-editor-foreground, #dcddde) 5%, transparent);
+  --mv-bg-tertiary: color-mix(in srgb, var(--vscode-editor-foreground, #dcddde) 8%, transparent);
   
   /* Text Colors */
-  --mv-text-normal: var(--vscode-foreground);
-  --mv-text-muted: var(--vscode-descriptionForeground);
+  --mv-text-normal: var(--vscode-foreground, #dcddde);
+  --mv-text-muted: var(--vscode-descriptionForeground, #999999);
   --mv-text-faint: color-mix(in srgb, var(--vscode-foreground) 40%, transparent);
   --mv-text-on-accent: var(--vscode-button-foreground);
   

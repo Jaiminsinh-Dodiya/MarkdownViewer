@@ -90,7 +90,7 @@ export class MarkdownItEngine implements MarkdownEngine {
     md.use(sup);
     
     const emoji = require('markdown-it-emoji');
-    md.use(emoji);
+    md.use(emoji.full);
 
     const mark = require('markdown-it-mark');
     md.use(mark);
@@ -239,7 +239,7 @@ export class MarkdownItEngine implements MarkdownEngine {
     md.renderer.rules.link_open = (tokens, idx, opts, env, self): string => {
       const token = tokens[idx];
       const href = token.attrGet('href') || '';
-      if (isRemoteResource(href)) {
+      if (isRemoteResource(href) || href.startsWith('mailto:')) {
         token.attrSet('data-external-link', 'true');
         token.attrSet('rel', 'noopener noreferrer');
       }

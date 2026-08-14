@@ -87,6 +87,11 @@
     initMermaid();
     setupScrollSpy();
 
+    const findInput = document.getElementById('mv-find-input');
+    if (findInput && findInput.value) {
+      performSearch(findInput.value);
+    }
+
     // Restore scroll position unless editor scroll was active
     if (!isScrollingFromEditor) {
       window.scrollTo(0, savedY);
