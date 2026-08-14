@@ -4,19 +4,28 @@
 
 ---
 
-## ✅ Completed Features (Obsidian-Style Release)
+## ✅ Completed Features (v0.3.0 Feature-Rich Release)
 
-### 🎨 Obsidian Reading Mode Visual System
+### 🎨 Obsidian Reading Mode Visual System & Custom CSS
 - [x] **Obsidian Design System**: System UI typography, H1 bottom border accent, radius system (4px/8px/12px), smooth transitions.
 - [x] **Obsidian Callout Blocks**: Styled `> [!type]` callouts (13 types with custom SVG icons, tinted backgrounds, left border strip, collapsible `+`/`-` support).
-- [x] **Theme Adaptive**: Fully leverages VS Code theme CSS variables with fallback to Obsidian purple (`#7f6df2`).
+- [x] **Custom User CSS**: Setting `markdownViewer.customStyles` to load custom user stylesheets into the Webview.
 
 ### 🛠️ UX & Interactive Enhancements
+- [x] **Phase 0 Incremental Updates**: Live text changes post `postMessage` updates, preserving scroll positions, open find bars, and TOC states.
+- [x] **Bi-Directional Scroll Sync**: Editor ↔ Preview scroll synchronization with `LineTaggingPlugin` and 200ms cooldown loop protection.
+- [x] **Interactive TOC Sidebar & Scroll-Spy**: Collapsible TOC tree panel with `IntersectionObserver` scroll-spy highlighting active section.
+- [x] **In-Preview Search / Find Bar (`Ctrl+F`)**: Floating search bar with match count (`3 of 12`), Next/Prev navigation, and yellow hit highlights.
+- [x] **Document Statistics Footer**: Live word count, character count, line count, and estimated reading time.
+- [x] **Standalone HTML Export Command**: `Markdown Viewer: Export to Standalone HTML` (`markdownViewer.exportHtml`) generates self-contained `.html` files for offline sharing.
 - [x] **Copy Code Button**: Hover-reveal button on fenced code blocks with clipboard copy & visual confirmation feedback.
 - [x] **Image Lightbox / Zoom**: Click any image in preview to open a centered fullscreen zoom modal with backdrop dismiss.
-- [x] **External Link Interception**: External links (`http`, `https`, `mailto`) open in default browser via `vscode.env.openExternal`.
 
-### 📝 Enhanced Rendering Capabilities
+### 📝 Extended Syntax Capabilities
+- [x] **Text Mark / Highlight**: `==highlight text==` → `<mark>`
+- [x] **Inserted Text**: `++inserted text++` → `<ins>`
+- [x] **Definition Lists**: `<dl>`, `<dt>`, `<dd>` via `markdown-it-deflist`.
+- [x] **Abbreviations**: `<abbr>` via `markdown-it-abbr`.
 - [x] **YAML Frontmatter Properties**: Parsed and rendered as an Obsidian-style "Properties" card at the top of the preview.
 - [x] **Footnotes**: Superscript footnote references `[^1]` and bottom footnotes section with back-links.
 - [x] **Subscript & Superscript**: `~subscript~` and `^superscript^` rendering.
@@ -28,24 +37,10 @@
 
 ---
 
-## 🎯 Short-Term Tasks (Next Up)
+## 🎯 Future Ideas (Local-Only Backlog)
 
-### 1. Webview UI & User Experience Enhancements
-- [ ] **Find in Preview**: Support `Ctrl+F` inside the preview panel to search rendered content.
-- [ ] **Custom Theme / User CSS**: Allow users to specify a path to a custom CSS file (`markdownViewer.customStyles`) to override preview styling.
-
-### 2. Editor & Navigation Integration
-- [ ] **Synchronized Scrolling (Editor ↔ Preview)**: Bi-directional scroll sync between the active editor and the preview panel.
-- [ ] **Table of Contents (TOC) Sidebar**: Interactive outline/TOC tree view in the preview header or side panel.
-- [ ] **In-Document Jump Links**: Enhance anchor clicking so jumping to `#heading-slug` smoothly scrolls the Webview to that section.
-
----
-
-## 📦 Long-Term / Export Features
-
-### 3. Export Capabilities
-- [ ] **Export to HTML**: Command `Markdown Viewer: Export to HTML` to save the standalone, styled HTML document.
-- [ ] **Print / Save as PDF**: Command `Markdown Viewer: Print / Export to PDF`.
+- [ ] **Print / Save as PDF**: Direct command to trigger system PDF print dialog.
+- [ ] **Custom Math Macros**: Support user-defined KaTeX LaTeX macros in settings.
 
 ---
 

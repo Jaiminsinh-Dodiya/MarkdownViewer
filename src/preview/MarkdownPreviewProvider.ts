@@ -1,3 +1,4 @@
+import * as path from 'path';
 import * as vscode from 'vscode';
 
 import { MarkdownEngine } from '../markdown/MarkdownEngine';
@@ -8,25 +9,19 @@ import { getWebviewHtml } from './WebviewContent';
 interface ManagedPanel {
   panel: vscode.WebviewPanel;
   documentUri: vscode.Uri;
+  hasLoadedInitialHtml: boolean;
+  lastSyncFromPreviewTime: number;
 }
 
 /**
  * Connects VS Code documents to the Markdown engine and manages the
  * lifecycle of preview Webview panels.
- *
- * Responsibilities (see spec section 20/29):
- *  - Create/reveal panels, keyed by source document.
- *  - Re-render on document change (debounced) without recreating the panel.
- *  - Configure Webview options (scripts enabled, restricted resource roots).
- *  - Read extension configuration and pass it through as render options.
- *
- * This class must NOT contain Markdown parsing logic — that lives entirely
- * behind the MarkdownEngine interface.
  */
 export class MarkdownPreviewProvider {
   private readonly panels = new Map<string, ManagedPanel>();
   private readonly changeDebounceTimers = new Map<string, NodeJS.Timeout>();
   private static readonly DEBOUNCE_MS = 150;
+  private static readonly COOLDOWN_MS = 200;
 
   constructor(
     private readonly context: vscode.ExtensionContext,
@@ -40,8 +35,19 @@ export class MarkdownPreviewProvider {
 
     if (existing) {
       existing.panel.reveal(column, column === vscode.ViewColumn.Beside);
-      this.renderInto(existing.panel, document);
+      this.renderInto(existing, document);
       return;
+    }
+
+    const config = vscode.workspace.getConfiguration('markdownViewer', document.uri);
+    const customStylesPath = config.get<string>('customStyles', '').trim();
+    const extraRoots: vscode.Uri[] = [];
+
+    if (customStylesPath) {
+      const resolvedPath = path.isAbsolute(customStylesPath)
+        ? customStylesPath
+        : path.join(vscode.workspace.getWorkspaceFolder(document.uri)?.uri.fsPath || '', customStylesPath);
+      extraRoots.push(vscode.Uri.file(path.dirname(resolvedPath)));
     }
 
     const panel = vscode.window.createWebviewPanel(
@@ -53,28 +59,55 @@ export class MarkdownPreviewProvider {
         localResourceRoots: [
           vscode.Uri.joinPath(this.context.extensionUri, 'media'),
           vscode.Uri.joinPath(this.context.extensionUri, 'node_modules', 'katex', 'dist'),
+          ...extraRoots,
           ...computeLocalResourceRoots(document.uri)
         ],
         retainContextWhenHidden: true
       }
     );
 
+    const managed: ManagedPanel = {
+      panel,
+      documentUri: document.uri,
+      hasLoadedInitialHtml: false,
+      lastSyncFromPreviewTime: 0
+    };
+
     panel.onDidDispose(() => {
       this.panels.delete(key);
       this.clearDebounce(key);
     });
 
-    panel.webview.onDidReceiveMessage((message: { type?: string; href?: string }) => {
+    panel.webview.onDidReceiveMessage((message: { type?: string; href?: string; line?: number }) => {
       if (message?.type === 'openExternalLink' && typeof message.href === 'string') {
         this.openExternalLink(message.href);
+      } else if (message?.type === 'revealLine' && typeof message.line === 'number') {
+        this.handleRevealLineFromPreview(managed, message.line);
       }
     });
 
-    this.panels.set(key, { panel, documentUri: document.uri });
-    this.renderInto(panel, document);
+    this.panels.set(key, managed);
+    this.renderInto(managed, document);
   }
 
-  /** Called on document change events; re-renders the matching panel, if any, debounced. */
+  /** Called when editor scrolls — sends scrollToLine message to Webview if sync enabled. */
+  public postScrollToLine(documentUri: vscode.Uri, line: number): void {
+    const key = documentUri.toString();
+    const managed = this.panels.get(key);
+    if (!managed) { return; }
+
+    const config = vscode.workspace.getConfiguration('markdownViewer', documentUri);
+    if (!config.get<boolean>('scrollSync', true)) { return; }
+
+    // Cooldown check: if preview just scrolled editor, ignore echo scroll
+    if (Date.now() - managed.lastSyncFromPreviewTime < MarkdownPreviewProvider.COOLDOWN_MS) {
+      return;
+    }
+
+    managed.panel.webview.postMessage({ type: 'scrollToLine', line });
+  }
+
+  /** Called on document change events; re-renders or updates matching panel debounced. */
   public onDocumentChanged(document: vscode.TextDocument): void {
     const key = document.uri.toString();
     const managed = this.panels.get(key);
@@ -84,7 +117,7 @@ export class MarkdownPreviewProvider {
 
     this.clearDebounce(key);
     const timer = setTimeout(() => {
-      this.renderInto(managed.panel, document);
+      this.renderInto(managed, document);
     }, MarkdownPreviewProvider.DEBOUNCE_MS);
     this.changeDebounceTimers.set(key, timer);
   }
@@ -105,10 +138,21 @@ export class MarkdownPreviewProvider {
     this.changeDebounceTimers.clear();
   }
 
-  private renderInto(panel: vscode.WebviewPanel, document: vscode.TextDocument): void {
+  private renderInto(managed: ManagedPanel, document: vscode.TextDocument): void {
     const config = vscode.workspace.getConfiguration('markdownViewer', document.uri);
     const enableMath = config.get<boolean>('math', true);
     const enableMermaid = config.get<boolean>('mermaid', true);
+    const showToc = config.get<boolean>('showToc', true);
+    const showStats = config.get<boolean>('showStats', true);
+    const customStylesPath = config.get<string>('customStyles', '').trim();
+
+    let customStylesUri: vscode.Uri | undefined;
+    if (customStylesPath) {
+      const resolvedPath = path.isAbsolute(customStylesPath)
+        ? customStylesPath
+        : path.join(vscode.workspace.getWorkspaceFolder(document.uri)?.uri.fsPath || '', customStylesPath);
+      customStylesUri = managed.panel.webview.asWebviewUri(vscode.Uri.file(resolvedPath));
+    }
 
     const options: MarkdownRenderOptions = {
       ...DEFAULT_RENDER_OPTIONS,
@@ -120,39 +164,73 @@ export class MarkdownPreviewProvider {
       showFrontmatter: config.get<boolean>('showFrontmatter', true),
       enableMath,
       enableMermaid,
+      enableLineTagging: config.get<boolean>('scrollSync', true),
       resolveResourcePath: (rawPath: string) =>
-        resolveWebviewResourcePath(panel.webview, document.uri, rawPath)
+        resolveWebviewResourcePath(managed.panel.webview, document.uri, rawPath)
     };
 
     let rendered;
     try {
       rendered = this.engine.render(document.getText(), options);
     } catch (err) {
-      panel.webview.html = getWebviewHtml(panel.webview, this.context.extensionUri, {
+      managed.panel.webview.html = getWebviewHtml(managed.panel.webview, this.context.extensionUri, {
         bodyHtml: `<p class="markdown-viewer-error">The Markdown preview could not be rendered.</p>`,
         maxContentWidth: config.get<number>('maxContentWidth', 900),
         warnings: [],
         enableMath,
-        enableMermaid
+        enableMermaid,
+        showToc,
+        showStats,
+        headings: []
       });
       return;
     }
 
-    panel.webview.html = getWebviewHtml(panel.webview, this.context.extensionUri, {
+    // Phase 0: If initial full HTML shell was already set, post an incremental update message!
+    if (managed.hasLoadedInitialHtml) {
+      managed.panel.webview.postMessage({
+        type: 'update',
+        html: rendered.html,
+        headings: rendered.headings,
+        warnings: rendered.warnings,
+        frontmatter: rendered.frontmatter,
+        stats: rendered.stats
+      });
+      return;
+    }
+
+    // First load: set full HTML shell
+    managed.panel.webview.html = getWebviewHtml(managed.panel.webview, this.context.extensionUri, {
       bodyHtml: rendered.html,
       maxContentWidth: config.get<number>('maxContentWidth', 900),
       warnings: rendered.warnings,
       enableMath,
-      enableMermaid
+      enableMermaid,
+      showToc,
+      showStats,
+      customStylesUri,
+      headings: rendered.headings,
+      stats: rendered.stats
     });
+    managed.hasLoadedInitialHtml = true;
   }
 
-  /**
-   * Opens a link using VS Code's external-open mechanism rather than
-   * allowing the Webview to navigate to it directly. Only http/https/mailto
-   * schemes are permitted — this is the enforcement point referenced by the
-   * Webview security requirements in spec section 24.
-   */
+  private handleRevealLineFromPreview(managed: ManagedPanel, line: number): void {
+    const config = vscode.workspace.getConfiguration('markdownViewer', managed.documentUri);
+    if (!config.get<boolean>('scrollSync', true)) { return; }
+
+    managed.lastSyncFromPreviewTime = Date.now();
+
+    for (const editor of vscode.window.visibleTextEditors) {
+      if (editor.document.uri.toString() === managed.documentUri.toString()) {
+        const lineIdx = Math.max(0, line - 1);
+        const range = new vscode.Range(lineIdx, 0, lineIdx, 0);
+        editor.revealRange(range, vscode.TextEditorRevealType.InCenterIfOutsideViewport);
+        break;
+      }
+    }
+  }
+
   private openExternalLink(href: string): void {
     let uri: vscode.Uri;
     try {

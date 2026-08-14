@@ -6,12 +6,16 @@
  * of the editor integration.
  */
 
+/** Computed document statistics. */
+export interface DocumentStats {
+  words: number;
+  chars: number;
+  lines: number;
+  readingTimeMin: number;
+}
+
 /**
  * Options that control how a Markdown document is rendered.
- * These are intentionally coarse-grained for V0.1 — enough to support
- * the current feature set without over-specifying behavior that future
- * rendering modes (GitHub-flavored Markdown, math, Mermaid, etc.) would
- * need to redefine anyway.
  */
 export interface MarkdownRenderOptions {
   /** Whether raw inline/block HTML in the source should be preserved (after sanitization). */
@@ -23,9 +27,6 @@ export interface MarkdownRenderOptions {
   /**
    * Resolves a relative resource path (e.g. an image path found in the Markdown
    * source) to a URI string that is safe to place in the rendered HTML.
-   * Supplied by the caller (the preview layer) because only it knows about
-   * workspace roots and Webview URI conversion — the engine must not know
-   * about the filesystem or VS Code URIs.
    */
   resolveResourcePath?: (rawPath: string) => string;
   /** Whether to show extracted frontmatter as a property block. */
@@ -34,6 +35,8 @@ export interface MarkdownRenderOptions {
   enableMath: boolean;
   /** Whether to render Mermaid diagrams. */
   enableMermaid: boolean;
+  /** Whether to enable line tagging (data-line="L") for scroll sync. */
+  enableLineTagging: boolean;
 }
 
 /** A single heading extracted from the rendered document. */
@@ -52,10 +55,11 @@ export interface RenderedMarkdown {
   warnings: string[];
   /** The extracted YAML frontmatter block (if any). */
   frontmatter?: string;
+  /** Computed document statistics. */
+  stats: DocumentStats;
 }
 
-/** Thrown by the engine only for truly unrecoverable input; the engine should
- *  prefer degrading gracefully (see MarkdownUtils) over throwing. */
+/** Thrown by the engine only for truly unrecoverable input. */
 export class MarkdownRenderError extends Error {
   constructor(message: string, public readonly cause?: unknown) {
     super(message);
@@ -69,5 +73,6 @@ export const DEFAULT_RENDER_OPTIONS: MarkdownRenderOptions = {
   sanitizeHtml: true,
   showFrontmatter: true,
   enableMath: true,
-  enableMermaid: true
+  enableMermaid: true,
+  enableLineTagging: true
 };

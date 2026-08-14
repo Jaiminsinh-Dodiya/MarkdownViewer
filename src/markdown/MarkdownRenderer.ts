@@ -2,6 +2,7 @@ import MarkdownIt = require('markdown-it');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const taskLists = require('markdown-it-task-lists');
 import { calloutPlugin } from './CalloutPlugin';
+import { lineTaggingPlugin } from './LineTaggingPlugin';
 
 type RenderRule = (
   tokens: MarkdownIt.Token[],
@@ -16,31 +17,26 @@ import { JSDOM } from 'jsdom';
 
 import { MarkdownEngine } from './MarkdownEngine';
 import {
+  DocumentStats,
   MarkdownHeading,
   MarkdownRenderOptions,
   RenderedMarkdown
 } from './MarkdownTypes';
 import { escapeHtml, isRemoteResource, slugify } from './MarkdownUtils';
 
-// A single shared JSDOM window backs DOMPurify. This is process-local
-// scratch space, not a browsing context — nothing is ever navigated or
-// loaded into it. Isolated from the VS Code Webview entirely.
+// A single shared JSDOM window backs DOMPurify.
 const purifyWindow = new JSDOM('').window;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const DOMPurify = createDOMPurify(purifyWindow as unknown as any);
 
 /**
  * Default implementation of MarkdownEngine, built on markdown-it.
- *
- * This class owns all parser/highlighter-specific behavior. Nothing here
- * knows about VS Code, Webviews, or the filesystem — resource path
- * resolution is delegated to the caller via
- * MarkdownRenderOptions.resolveResourcePath.
  */
 export class MarkdownItEngine implements MarkdownEngine {
   render(source: string, options: MarkdownRenderOptions): RenderedMarkdown {
     const warnings: string[] = [];
     const headings: MarkdownHeading[] = [];
+    const stats = this.computeStats(source);
 
     let md: MarkdownIt;
     try {
@@ -69,22 +65,20 @@ export class MarkdownItEngine implements MarkdownEngine {
         }
       });
     } catch (err) {
-      // markdown-it construction failing would be a genuinely unrecoverable
-      // environment problem (not bad user input), so this is the one place
-      // we surface it loudly rather than degrading.
       return {
         html: `<p class="markdown-viewer-error">Failed to initialize the Markdown renderer.</p>`,
         headings: [],
-        warnings: ['Renderer initialization failed.']
+        warnings: ['Renderer initialization failed.'],
+        stats
       };
     }
 
-    // `enabled: false` (the default) is what we want here: it renders
-    // checkboxes with the `disabled` attribute, matching the spec
-    // requirement that task-list checkboxes are display-only in V0.1.
     md.use(taskLists, { enabled: false, label: true, labelAfter: true });
-    
     md.use(calloutPlugin);
+    
+    if (options.enableLineTagging) {
+      md.use(lineTaggingPlugin);
+    }
     
     const footnote = require('markdown-it-footnote');
     md.use(footnote);
@@ -97,6 +91,18 @@ export class MarkdownItEngine implements MarkdownEngine {
     
     const emoji = require('markdown-it-emoji');
     md.use(emoji);
+
+    const mark = require('markdown-it-mark');
+    md.use(mark);
+
+    const ins = require('markdown-it-ins');
+    md.use(ins);
+
+    const deflist = require('markdown-it-deflist');
+    md.use(deflist);
+
+    const abbr = require('markdown-it-abbr');
+    md.use(abbr);
     
     let extractedFrontmatter: string | undefined;
     const frontMatter = require('markdown-it-front-matter');
@@ -129,8 +135,6 @@ export class MarkdownItEngine implements MarkdownEngine {
     try {
       html = md.render(source);
     } catch (err) {
-      // Malformed input should never crash the extension — fall back to a
-      // plain, escaped rendering of the raw source instead.
       warnings.push('The document could not be fully parsed; showing raw text as a fallback.');
       html = `<pre class="markdown-viewer-fallback">${escapeHtml(source)}</pre>`;
     }
@@ -138,7 +142,7 @@ export class MarkdownItEngine implements MarkdownEngine {
     if (options.sanitizeHtml) {
       try {
         html = DOMPurify.sanitize(html, {
-          ADD_ATTR: ['target', 'rel', 'checked', 'disabled', 'data-callout'],
+          ADD_ATTR: ['target', 'rel', 'checked', 'disabled', 'data-callout', 'data-line', 'data-external-link'],
           ALLOW_UNKNOWN_PROTOCOLS: false
         });
       } catch (err) {
@@ -148,7 +152,7 @@ export class MarkdownItEngine implements MarkdownEngine {
     }
 
     if (options.showFrontmatter && extractedFrontmatter) {
-      const lines = extractedFrontmatter.split('\\n');
+      const lines = extractedFrontmatter.split('\n');
       let fmHtml = '<div class="mv-frontmatter"><div class="mv-frontmatter-title">Properties</div><div class="mv-frontmatter-content">';
       for (const line of lines) {
         const colonIndex = line.indexOf(':');
@@ -162,14 +166,20 @@ export class MarkdownItEngine implements MarkdownEngine {
       html = fmHtml + html;
     }
 
-    return { html, headings, warnings, frontmatter: extractedFrontmatter };
+    return { html, headings, warnings, frontmatter: extractedFrontmatter, stats };
   }
 
-  /**
-   * Captures rendered heading text/levels/slugs, stamps ids onto heading
-   * tokens, and appends a hover-revealed permalink anchor (a quiet,
-   * Bear/Typora-style touch — invisible until the reader's cursor is near it).
-   */
+  private computeStats(source: string): DocumentStats {
+    const chars = source.length;
+    const lines = source.split('\n').length;
+    // Simple robust word count: split by whitespace, filter out non-word tokens
+    const wordsMatch = source.match(/[\w'-]+/g);
+    const words = wordsMatch ? wordsMatch.length : 0;
+    const readingTimeMin = Math.max(1, Math.ceil(words / 200));
+
+    return { words, chars, lines, readingTimeMin };
+  }
+
   private configureHeadingCapture(md: MarkdownIt, headings: MarkdownHeading[]): void {
     const defaultOpen: RenderRule =
       md.renderer.rules.heading_open ||
@@ -180,68 +190,63 @@ export class MarkdownItEngine implements MarkdownEngine {
 
     md.renderer.rules.heading_open = (tokens, idx, opts, env, self): string => {
       const token = tokens[idx];
-      const level = Number(token.tag.replace('h', '')) || 1;
+      const level = parseInt(token.tag.replace(/^h/i, ''), 10);
       const inlineToken = tokens[idx + 1];
       const text = inlineToken ? inlineToken.content : '';
       const slug = slugify(text);
+      const line = token.map ? token.map[0] + 1 : 1;
+
+      headings.push({ level, text, slug, line });
       token.attrSet('id', slug);
-      headings.push({ level, text, slug, line: token.map ? token.map[0] : -1 });
+
       return defaultOpen(tokens, idx, opts, env, self);
     };
 
     md.renderer.rules.heading_close = (tokens, idx, opts, env, self): string => {
-      const openToken = tokens[idx - 2]; // heading_open, inline, heading_close
-      const slug = openToken?.attrGet('id') ?? '';
+      const openToken = tokens[idx - 2];
+      const slug = openToken?.attrGet('id');
       const anchor = slug
-        ? `<a class="mv-heading-anchor" href="#${slug}" aria-label="Link to this section">#</a>`
+        ? `<a class="markdown-viewer-permalink" href="#${slug}" aria-label="Permalink to ${escapeHtml(slug)}">#</a>`
         : '';
-      return anchor + defaultClose(tokens, idx, opts, env, self);
+      return `${anchor}${defaultClose(tokens, idx, opts, env, self)}`;
     };
   }
 
-  /** Rewrites image src attributes through the caller-supplied resource resolver. */
   private configureImageResolution(md: MarkdownIt, options: MarkdownRenderOptions): void {
-    const defaultRender: RenderRule =
+    const defaultImage: RenderRule =
       md.renderer.rules.image ||
       ((tokens, idx, opts, _env, self) => self.renderToken(tokens, idx, opts));
 
     md.renderer.rules.image = (tokens, idx, opts, env, self): string => {
       const token = tokens[idx];
-      const srcIndex = token.attrIndex('src');
-      if (srcIndex >= 0 && options.resolveResourcePath) {
-        const raw = token.attrs![srcIndex][1];
-        if (!isRemoteResource(raw)) {
-          token.attrs![srcIndex][1] = options.resolveResourcePath(raw);
+      const srcAttrIndex = token.attrIndex('src');
+      if (srcAttrIndex >= 0 && token.attrs) {
+        const rawPath = token.attrs[srcAttrIndex][1];
+        if (!isRemoteResource(rawPath) && options.resolveResourcePath) {
+          token.attrs[srcAttrIndex][1] = options.resolveResourcePath(rawPath);
         }
       }
       token.attrSet('loading', 'lazy');
-      return defaultRender(tokens, idx, opts, env, self);
+      return defaultImage(tokens, idx, opts, env, self);
     };
   }
 
-  /**
-   * Marks external links so the Webview's minimal client script can
-   * intercept clicks and hand them to VS Code's "open external" mechanism
-   * instead of allowing in-Webview navigation.
-   */
   private configureExternalLinks(md: MarkdownIt): void {
-    const defaultRender: RenderRule =
+    const defaultOpen: RenderRule =
       md.renderer.rules.link_open ||
       ((tokens, idx, opts, _env, self) => self.renderToken(tokens, idx, opts));
 
     md.renderer.rules.link_open = (tokens, idx, opts, env, self): string => {
       const token = tokens[idx];
-      const hrefIndex = token.attrIndex('href');
-      const href = hrefIndex >= 0 ? token.attrs![hrefIndex][1] : '';
-      if (isRemoteResource(href) || href.startsWith('mailto:')) {
+      const href = token.attrGet('href') || '';
+      if (isRemoteResource(href)) {
         token.attrSet('data-external-link', 'true');
         token.attrSet('rel', 'noopener noreferrer');
       }
-      return defaultRender(tokens, idx, opts, env, self);
+      return defaultOpen(tokens, idx, opts, env, self);
     };
   }
 
-  /** Wraps rendered tables in a scrollable container so wide tables can't break the page layout. */
   private configureResponsiveTables(md: MarkdownIt): void {
     const defaultOpen: RenderRule =
       md.renderer.rules.table_open ||
@@ -256,12 +261,6 @@ export class MarkdownItEngine implements MarkdownEngine {
       `${defaultClose(tokens, idx, opts, env, self)}</div>`;
   }
 
-  /**
-   * Stamps the fenced code block's language onto the `<pre>` element as a
-   * data attribute, so the stylesheet can display it as a small label
-   * (e.g. "TypeScript", "Bash") the way editors like Bear or Typora do.
-   * Purely presentational — falls back silently if the language is unknown.
-   */
   private configureCodeLanguageLabels(md: MarkdownIt): void {
     const defaultFence: RenderRule =
       md.renderer.rules.fence ||
@@ -275,15 +274,11 @@ export class MarkdownItEngine implements MarkdownEngine {
         return rendered;
       }
       const label = CODE_LANGUAGE_LABELS[langName.toLowerCase()] ?? langName;
-      // The default fence renderer always opens with a bare `<pre>` (no
-      // attributes) unless something upstream has already customized it;
-      // this rule runs first among fence customizations, so that holds.
       return rendered.replace('<pre>', `<pre data-lang="${escapeHtml(label)}">`);
     };
   }
 }
 
-/** Friendlier display names for common language identifiers, used by the code-block label. */
 const CODE_LANGUAGE_LABELS: Record<string, string> = {
   js: 'JavaScript',
   javascript: 'JavaScript',
