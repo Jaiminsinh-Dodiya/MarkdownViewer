@@ -36,12 +36,12 @@ ICONS['tldr'] = ICONS['abstract'];
 export function calloutPlugin(md: MarkdownIt): void {
   md.core.ruler.after('block', 'callout', (state) => {
     const tokens = state.tokens;
-
+    
     for (let i = 0; i < tokens.length; i++) {
       if (tokens[i].type === 'blockquote_open') {
         let endIndex = -1;
         let nestedLevel = 0;
-
+        
         for (let j = i + 1; j < tokens.length; j++) {
           if (tokens[j].type === 'blockquote_open') {
             nestedLevel++;
@@ -54,62 +54,47 @@ export function calloutPlugin(md: MarkdownIt): void {
             }
           }
         }
-
+        
         if (endIndex === -1) { continue; }
-
+        
         let firstInlineToken: Token | null = null;
-        let pOpenIndex = -1;
-
+        
         for (let j = i + 1; j < endIndex; j++) {
           if (tokens[j].type === 'paragraph_open') {
-            pOpenIndex = j;
-            if (tokens[j + 1] && tokens[j + 1].type === 'inline') {
-              firstInlineToken = tokens[j + 1];
+            if (tokens[j+1] && tokens[j+1].type === 'inline') {
+              firstInlineToken = tokens[j+1];
             }
             break;
           }
         }
-
-        if (!firstInlineToken || !firstInlineToken.content) { continue; }
-
-        // Match callout syntax at start: [!type]+ Optional Title
-        const match = firstInlineToken.content.match(/^\s*\[!([a-zA-Z]+)\]([+-]?)(?:[ \t]+([^\r\n]*))?/);
+        
+        if (!firstInlineToken) { continue; }
+        
+        // Match the callout syntax: [!type]+ Title
+        const match = firstInlineToken.content.match(/^\[!([a-zA-Z]+)\]([+-]?)(?:\s+(.*))?/);
         if (!match) { continue; }
-
+        
         const typeStr = match[1].toLowerCase();
         if (!Object.prototype.hasOwnProperty.call(ICONS, typeStr)) { continue; }
-
+        
         const collapseModifier = match[2]; // "+" or "-" or ""
-        let titleText = (match[3] || '').trim();
-        if (!titleText) {
-          titleText = typeStr.charAt(0).toUpperCase() + typeStr.slice(1);
-        }
+        let titleText = match[3] || typeStr.charAt(0).toUpperCase() + typeStr.slice(1);
         titleText = md.utils.escapeHtml(titleText);
-
-        // Strip the [!type] header line from the paragraph content
-        // The header line ends at the first newline or end of content
-        const firstLineEnd = firstInlineToken.content.search(/\r?\n/);
-        let remainingContent = '';
-        if (firstLineEnd >= 0) {
-          remainingContent = firstInlineToken.content.slice(firstLineEnd).replace(/^\r?\n/, '');
-        }
-
-        firstInlineToken.content = remainingContent;
-
-        // Also update children of the inline token
+        
+        // Strip the callout syntax from the inline token
+        const stripLength = match[0].length;
+        firstInlineToken.content = firstInlineToken.content.slice(stripLength);
         if (firstInlineToken.children && firstInlineToken.children.length > 0) {
-          if (firstLineEnd >= 0) {
-            // Re-parse children for remaining content
-            firstInlineToken.children = md.parseInline(remainingContent, state.env)[0]?.children || [];
-          } else {
-            firstInlineToken.children = [];
+          const firstChild = firstInlineToken.children[0];
+          if (firstChild.type === 'text') {
+            firstChild.content = firstChild.content.slice(stripLength);
           }
         }
-
+        
         // Transform blockquote into callout div
         tokens[i].type = 'callout_open';
         tokens[i].tag = 'div';
-
+        
         let classes = 'mv-callout';
         if (collapseModifier) {
           classes += ' is-collapsible';
@@ -117,10 +102,10 @@ export function calloutPlugin(md: MarkdownIt): void {
             classes += ' is-collapsed';
           }
         }
-
+        
         tokens[i].attrSet('class', classes);
         tokens[i].attrSet('data-callout', typeStr);
-
+        
         // Create title token
         const titleHtml = new state.Token('html_block', '', 0);
         titleHtml.content = `<div class="mv-callout-title">
@@ -130,26 +115,15 @@ export function calloutPlugin(md: MarkdownIt): void {
 </div>\n<div class="mv-callout-content">`;
 
         tokens.splice(i + 1, 0, titleHtml);
-        endIndex++; // Shifted by 1
-
-        // If the first paragraph became completely empty, remove its p_open, inline, p_close
-        if (!remainingContent.trim() && pOpenIndex >= 0) {
-          // pOpenIndex shifted by 1 because titleHtml was inserted before it
-          const actualPOpen = pOpenIndex + 1;
-          if (tokens[actualPOpen] && tokens[actualPOpen].type === 'paragraph_open') {
-            // Remove paragraph_open, inline, paragraph_close (3 tokens)
-            tokens.splice(actualPOpen, 3);
-            endIndex -= 3;
-          }
-        }
-
+        endIndex++; // We added a token, so endIndex shifts
+        
         // Close the inner content div before the blockquote_close
         const contentCloseHtml = new state.Token('html_block', '', 0);
         contentCloseHtml.content = '</div>';
-
+        
         tokens.splice(endIndex, 0, contentCloseHtml);
         endIndex++;
-
+        
         tokens[endIndex].type = 'callout_close';
         tokens[endIndex].tag = 'div';
       }

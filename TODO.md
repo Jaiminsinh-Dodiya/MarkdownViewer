@@ -4,6 +4,15 @@
 
 ---
 
+## 🐞 v0.3.0 Remaining Bugs (To Fix Next)
+
+- [ ] **Callout Collapse**: Clicking the callout title does not collapse the content. Needs JS event listener or CSS checkbox hack to toggle `.is-collapsed` class.
+- [ ] **Image Lightbox Position**: The fullscreen zoomed image is not centered; it opens in the bottom-right corner. Need to fix the flexbox/absolute positioning.
+- [ ] **Find Bar Position**: The search bar is floating awkwardly below the properties block instead of fixed to the top right toolbar.
+- [ ] **Math Equation Styling**: Block and inline KaTeX math formulas are completely unstyled and mangled (likely missing the KaTeX CSS import in WebviewContent).
+
+---
+
 ## ✅ Completed Features (v0.3.0 Feature-Rich Release)
 
 ### 🎨 Obsidian Reading Mode Visual System & Custom CSS

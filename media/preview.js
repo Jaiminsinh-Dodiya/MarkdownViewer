@@ -175,14 +175,31 @@
         const code = pre.querySelector('code');
         const text = code ? code.textContent || '' : pre.textContent || '';
 
-        navigator.clipboard.writeText(text).then(() => {
+        const markCopied = () => {
           btn.classList.add('copied');
           btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
           setTimeout(() => {
             btn.classList.remove('copied');
             btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
           }, 2000);
-        }).catch(() => {});
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(markCopied).catch(() => {
+            // Webview clipboard fallback
+            const ta = document.createElement('textarea');
+            ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+            document.body.appendChild(ta); ta.select();
+            try { document.execCommand('copy'); markCopied(); } catch (_) {}
+            document.body.removeChild(ta);
+          });
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+          document.body.appendChild(ta); ta.select();
+          try { document.execCommand('copy'); markCopied(); } catch (_) {}
+          document.body.removeChild(ta);
+        }
       });
 
       pre.style.position = 'relative';
@@ -197,8 +214,11 @@
     if (!content) { return; }
 
     content.addEventListener('click', (event) => {
-      const img = event.target.closest('.markdown-viewer-content img');
-      if (!img || img.closest('a')) { return; }
+      // event.target IS the img element (leaf node) — closest() only works going up,
+      // so we check the target itself first, then try closest() as a fallback.
+      const img = (event.target instanceof HTMLImageElement ? event.target : null) ||
+                  event.target.closest('img');
+      if (!img || !content.contains(img) || img.closest('a')) { return; }
 
       const overlay = document.createElement('div');
       overlay.className = 'mv-lightbox';
@@ -260,29 +280,34 @@
   // ── Mermaid Diagram Initialization ──────────────────────────────────────
 
   function initMermaid() {
-    if (typeof mermaid === 'undefined') { return; }
+    // mermaid v10+ ships as an ES module; the bundled IIFE exposes it on window.mermaid.
+    const mermaidApi = typeof window.mermaid !== 'undefined' ? window.mermaid : null;
+    if (!mermaidApi) { return; }
 
     const body = document.body;
     const isDark = body.classList.contains('vscode-dark') || body.classList.contains('vscode-high-contrast');
 
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: isDark ? 'dark' : 'default',
-      securityLevel: 'strict',
-      fontFamily: 'var(--mv-font-text, sans-serif)',
-    });
+    try {
+      mermaidApi.initialize({
+        startOnLoad: false,
+        theme: isDark ? 'dark' : 'default',
+        securityLevel: 'antiscript',  // 'strict' uses iframe (breaks in webview CSP), 'antiscript' strips scripts safely
+        fontFamily: 'sans-serif',
+      });
+    } catch (e) { /* already initialized */ }
 
-    document.querySelectorAll('.mermaid').forEach(async (el, index) => {
-      if (el.classList.contains('mermaid-rendered')) { return; }
+    document.querySelectorAll('.mermaid:not(.mermaid-rendered)').forEach(async (el, index) => {
       const code = el.textContent || '';
       if (!code.trim()) { return; }
 
       try {
-        const { svg } = await mermaid.render(`mermaid-diagram-${index}`, code);
+        const uniqueId = `mermaid-svg-${Date.now()}-${index}`;
+        const { svg } = await mermaidApi.render(uniqueId, code);
         el.innerHTML = svg;
         el.classList.add('mermaid-rendered');
       } catch (err) {
-        el.innerHTML = '<pre class="mermaid-error">Failed to render Mermaid diagram.</pre>';
+        console.warn('Mermaid render error:', err);
+        el.innerHTML = `<pre class="mermaid-error">Diagram error: ${err && err.message ? err.message : err}</pre>`;
       }
     });
   }
@@ -362,6 +387,34 @@
 
     if (toggleBtn) { toggleBtn.addEventListener('click', toggleToc); }
     if (closeBtn) { closeBtn.addEventListener('click', toggleToc); }
+
+    // On first load, populate TOC from headings already in the rendered DOM.
+    initTocFromDom();
+  }
+
+  function initTocFromDom() {
+    const container = document.getElementById('mv-toc-content');
+    if (!container || container.children.length > 0) { return; } // already populated
+
+    const headingEls = document.querySelectorAll(
+      '.markdown-viewer-content h1[id], .markdown-viewer-content h2[id], ' +
+      '.markdown-viewer-content h3[id], .markdown-viewer-content h4[id], ' +
+      '.markdown-viewer-content h5[id], .markdown-viewer-content h6[id]'
+    );
+
+    const headings = [];
+    headingEls.forEach((el) => {
+      const level = parseInt(el.tagName.slice(1), 10);
+      const slug = el.id;
+      // Strip the permalink anchor text from the heading text
+      const text = (el.textContent || '').replace(/#$/, '').trim();
+      headings.push({ level, slug, text });
+    });
+
+    if (headings.length > 0) {
+      currentHeadings = headings;
+      renderToc(headings);
+    }
   }
 
   // ── Document Stats Update ───────────────────────────────────────────────
@@ -533,29 +586,25 @@
     }
   }
 
-  function safeRun(fn) {
-    try {
-      fn();
-    } catch (err) {
-      console.error('[MarkdownViewer] Initializer error:', err);
-    }
-  }
-
-  function initAll() {
-    safeRun(initCopyButtons);
-    safeRun(initLightbox);
-    safeRun(initCalloutToggles);
-    safeRun(initMermaid);
-    safeRun(initTocControls);
-    safeRun(initFindBar);
-    safeRun(setupScrollSpy);
-  }
-
   // ── Initialize Everything ───────────────────────────────────────────────
 
-  document.addEventListener('DOMContentLoaded', initAll);
+  document.addEventListener('DOMContentLoaded', () => {
+    initCopyButtons();
+    initLightbox();
+    initCalloutToggles();
+    initMermaid();
+    initTocControls();
+    initFindBar();
+    setupScrollSpy();
+  });
 
   if (document.readyState !== 'loading') {
-    initAll();
+    initCopyButtons();
+    initLightbox();
+    initCalloutToggles();
+    initMermaid();
+    initTocControls();
+    initFindBar();
+    setupScrollSpy();
   }
 })();

@@ -173,8 +173,11 @@ export class MarkdownPreviewProvider {
     try {
       rendered = this.engine.render(document.getText(), options);
     } catch (err) {
+      console.error('Markdown Engine render error:', err);
+      const errMsg = err instanceof Error ? err.message : String(err);
+      const safeErrMsg = errMsg.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       managed.panel.webview.html = getWebviewHtml(managed.panel.webview, this.context.extensionUri, {
-        bodyHtml: `<p class="markdown-viewer-error">The Markdown preview could not be rendered.</p>`,
+        bodyHtml: `<p class="markdown-viewer-error">The Markdown preview could not be rendered. Error: ${safeErrMsg}</p>`,
         maxContentWidth: config.get<number>('maxContentWidth', 900),
         warnings: [],
         enableMath,

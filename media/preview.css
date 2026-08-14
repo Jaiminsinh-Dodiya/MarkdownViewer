@@ -269,16 +269,15 @@ blockquote > :last-child {
   color: hsl(var(--callout-hsl, var(--callout-gray)));
 }
 
-.mv-callout-title-icon {
+.mv-callout-icon {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.mv-callout-title-icon svg {
+.mv-callout-icon svg {
   width: 16px;
   height: 16px;
-  fill: currentColor;
 }
 
 .mv-callout-content {

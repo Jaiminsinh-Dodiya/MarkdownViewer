@@ -1,90 +1,213 @@
-# Markdown Viewer (v0.3.0)
+# Markdown Viewer
 
-A clean, fast, secure, feature-rich Markdown preview extension for Visual Studio Code. Renders `.md` files natively inside the editor using an **Obsidian-inspired Reading Mode** design system, full VS Code theme integration, and 100% local offline rendering.
+A clean, fast, secure Markdown preview for Visual Studio Code — a dedicated
+viewer panel that renders `.md` files natively inside the editor, with full
+VS Code theme integration.
 
----
-
-## ✨ Feature Overview
-
-### 🎨 Obsidian Reading Mode Visual System & Custom CSS
-- **Obsidian Design System**: System UI typography (Inter font stack), H1 bottom border accent, border-radius hierarchy (`4px`/`8px`/`12px`), zebra-striped tables, and fast transitions.
-- **Obsidian Callout Blocks**: Styled `> [!type]` callouts (13 supported types with custom SVG icons, tinted backgrounds, left border strip, and collapsible `+`/`-` support).
-- **Custom User CSS**: Setting `markdownViewer.customStyles` allows specifying a path to a custom `.css` file to style the preview panel.
-
-### 🛠️ Interactive & Reading Enhancements
-- **Bi-Directional Scroll Sync**: Scrolling in the editor automatically scrolls the preview to the matching line (`LineTaggingPlugin`); scrolling in the preview reveals the line in the editor. Includes a 200ms cooldown loop protection.
-- **Phase 0 Live Incremental Updates**: Text edits update the preview via `postMessage` without reloading the DOM shell. Scroll positions, open find bars, and TOC sidebar states are completely preserved while typing!
-- **Interactive TOC Sidebar & Scroll-Spy**: Collapsible TOC tree panel in the Webview with `IntersectionObserver` scroll-spy active section highlighting.
-- **In-Preview Search / Find Bar (`Ctrl + F`)**: Press `Ctrl+F` (or `Cmd+F`) inside the preview panel to open a floating find bar with hit highlighting, match counter (`3 of 12`), and Next/Prev navigation.
-- **Document Statistics Footer**: Live word count, character count, line count, and estimated reading time displayed in the Webview footer.
-- **Hover-to-Copy Code Buttons**: Hovering over any fenced code block reveals a **Copy** button to copy code directly to the system clipboard with checkmark confirmation feedback.
-- **Click-to-Zoom Image Lightbox**: Click any image in the preview to expand it into a centered dark overlay modal. Press `Esc` or click the backdrop to dismiss.
-- **External Link Safety**: External links (`http`, `https`, `mailto`) open in the system web browser/email client via `vscode.env.openExternal` rather than navigating away inside the webview panel.
-
-### 📄 Standalone HTML Export
-- Command **`Markdown Viewer: Export to Standalone HTML`** (`markdownViewer.exportHtml`) generates a single, self-contained `.html` file with embedded inline CSS, KaTeX math styles, and Mermaid JS that opens in any browser offline without requiring VS Code.
-
-### 📊 Diagrams & Math (100% Local Offline)
-- **Mermaid Diagrams**: Client-side vector SVG rendering for ````mermaid` blocks using bundled Mermaid.js.
-- **KaTeX Math Expressions**: LaTeX math rendering for inline `$E=mc^2$` and block `$$...$$` equations using bundled KaTeX.
-
-### 📝 Extended Syntax Support
-- **Highlight Text**: `==highlighted text==` → `<mark>`
-- **Inserted Text**: `++inserted text++` → `<ins>`
-- **Definition Lists**: `Term` / `: Definition` → `<dl><dt><dd>`
-- **Abbreviations**: `*[HTML]: HyperText Markup Language` → `<abbr>`
-- **YAML Frontmatter Properties Card**: Parsed and rendered as a metadata card at the top of the file.
-- **Footnotes & References**: `[^1]` superscript links and bottom footnotes section with return arrows (`↩`).
-- **Subscript & Superscript**: `~subscript~` and `^superscript^` rendering.
-- **Emoji Shortcodes**: Render `:smile:` as 😊 via `markdown-it-emoji`.
+This is **V0.3**: a feature-rich, local Markdown viewer. It supports advanced features like Mermaid diagrams, KaTeX math, Obsidian callouts, and frontmatter. It does not include GitHub integration, Git awareness, or Markdown editing — see [Roadmap](#roadmap) for what's intentionally out of scope for now.
 
 ---
 
-## ⚙️ Extension Settings
+## Features
+
+- Dedicated preview panel (open in the active editor group, or beside it)
+- Live preview: updates automatically as you edit the source document
+- Headings (h1–h6), paragraphs, bold/italic/bold-italic/strikethrough, inline code
+- Unordered, ordered, and nested lists
+- GitHub-style task lists (`- [ ]` / `- [x]`) — rendered as **display-only**
+  checkboxes; editing the Markdown is the only way to change them in V0.1
+- Links, with external links opened via VS Code's native "open externally"
+  mechanism rather than navigating inside the preview
+- Images, with relative paths correctly resolved against the source
+  document's location
+- Blockquotes, including nested blockquotes and **Obsidian-style callouts** (`> [!info]`)
+- Fenced code blocks with syntax highlighting (via highlight.js) and a **hover-to-copy** button
+- Tables, including column alignment, wrapped for horizontal scrolling on
+  narrow viewports so wide tables don't break the page layout
+- Horizontal rules
+- **Mermaid Diagrams**: local, offline rendering of `mermaid` code blocks
+- **KaTeX Math**: local, offline rendering of inline (`$math$`) and block (`$$math$$`) equations
+- **Table of Contents Sidebar**: auto-generated floating sidebar with scroll-spy
+- **Find in Preview**: `Ctrl+F` to search directly within the rendered preview
+- **Standalone HTML Export**: generate self-contained `.html` files for sharing
+- Full VS Code theme integration (dark, light, and high-contrast) via
+  VS Code's CSS theme variables — nothing is hardcoded
+
+---
+
+## Installation
+
+### From a packaged `.vsix`
+
+1. Run `npm install` and `npm run package` (see [Development](#development)) to produce a `.vsix` file.
+2. In VS Code, open the Command Palette and run **Extensions: Install from VSIX...**, then select the file.
+
+### From source, for development
+
+See [Development](#development) below — you can run the extension directly from an Extension Development Host without packaging it.
+
+---
+
+## Usage
+
+1. Open a `.md` file in VS Code.
+2. Run one of the commands below from the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`).
+3. The preview renders in a panel and updates automatically as you edit the source file.
+
+## Commands
+
+| Command | Description |
+|---|---|
+| `Markdown Viewer: Open Preview` | Opens the preview in the active editor group. |
+| `Markdown Viewer: Open Preview to the Side` | Opens the preview beside the current editor. Also bound to `Ctrl+K V` / `Cmd+K V` and available as an icon in the editor toolbar. |
+
+Both commands require the active editor to hold a Markdown (`.md`) document; otherwise an informational message is shown instead of a broken preview.
+
+---
+
+## Configuration
 
 | Setting | Default | Description |
-|:---|:---:|:---|
-| `markdownViewer.scrollSync` | `true` | Bi-directional scroll synchronization between editor and preview. |
-| `markdownViewer.showToc` | `true` | Show interactive Table of Contents (TOC) sidebar in the preview. |
-| `markdownViewer.showStats` | `true` | Show document statistics (words, lines, reading time) in the preview footer. |
-| `markdownViewer.showFrontmatter` | `true` | Show extracted YAML frontmatter as a properties card. |
-| `markdownViewer.math` | `true` | Enable KaTeX math rendering for `$inline$` and `$$block$$` expressions. |
-| `markdownViewer.mermaid` | `true` | Enable Mermaid diagram rendering for ` ```mermaid ` code blocks. |
+|---|---|---|
 | `markdownViewer.syntaxHighlighting` | `true` | Enable syntax highlighting for fenced code blocks. |
-| `markdownViewer.allowHtml` | `false` | Allow raw HTML in Markdown source to be rendered (sanitized via DOMPurify). |
-| `markdownViewer.maxContentWidth` | `900` | Maximum content width in pixels for readability. |
-| `markdownViewer.customStyles` | `""` | Path to a custom CSS file to apply to the preview panel. |
+| `markdownViewer.allowHtml` | `false` | Allow raw HTML in Markdown source to be rendered. Even when enabled, all HTML is sanitized before display — see [Security](#security-notes). |
+| `markdownViewer.maxContentWidth` | `900` | Maximum width, in pixels, of the rendered Markdown content, for readability on wide monitors. |
 
 ---
 
-## 💻 Commands
+## Supported Markdown Features
 
-| Command | Shortcut | Description |
-|:---|:---:|:---|
-| `Markdown Viewer: Open Preview` | — | Opens preview in active editor tab. |
-| `Markdown Viewer: Open Preview to the Side` | `Ctrl+K V` | Opens preview beside current editor. |
-| `Markdown Viewer: Export to Standalone HTML` | — | Exports current Markdown document to a standalone `.html` file. |
+Headings, paragraphs, bold, italic, bold-italic, strikethrough, inline code, unordered/ordered/nested lists, task lists (display-only), links, images (with relative path resolution and click-to-zoom Lightbox), blockquotes (including nested and Obsidian-style Callouts), fenced code blocks with syntax highlighting and copy buttons, tables (with alignment), horizontal rules, YAML frontmatter, text highlights, definition lists, footnotes, Mermaid diagrams, and KaTeX math.
+
+Not yet supported (see [Roadmap](#roadmap)): GitHub-flavored Markdown extensions beyond task lists, and interactive/editable task lists.
 
 ---
 
-## 🛠️ Development & Building
+## Security Notes
+
+The preview renders inside a VS Code Webview with security treated as a first-class concern:
+
+- **Strict Content Security Policy**: `default-src 'none'`, with narrowly scoped `img-src`, `style-src`, and a nonce-based `script-src`. No `unsafe-inline` or `unsafe-eval`.
+- **No arbitrary Webview navigation**: clicking a link never navigates the preview panel itself. External links (`http`, `https`, `mailto`) are intercepted and handed to VS Code's `vscode.env.openExternal`, which opens them in the system browser/mail client.
+- **HTML sanitization**: all rendered HTML — including any raw HTML present in the Markdown source, if `markdownViewer.allowHtml` is enabled — is passed through DOMPurify before being placed in the Webview. Raw `<script>` tags and other unsafe constructs are stripped regardless of that setting.
+- **Restricted resource roots**: the Webview may only load local resources from the Markdown document's own directory and its containing workspace folder — not the entire filesystem.
+- **No code execution from Markdown**: code blocks are rendered as syntax-highlighted text only. Nothing in a Markdown document can execute JavaScript.
+
+---
+
+## Development
+
+### Prerequisites
+
+- Node.js 18+ and npm 9+
+- Visual Studio Code
+
+### Quick Setup (one command)
+
+Clone the repo and run the setup script — it checks prerequisites, installs dependencies, compiles TypeScript, runs the linter, and verifies the build output:
 
 ```bash
-# Setup dependencies and build output
+git clone https://github.com/Jaiminsinh-Dodiya/MarkdownViewer.git
+cd MarkdownViewer
 node scripts/setup.js
+```
 
-# Compile TypeScript
+That's it. The script handles everything and prints clear errors if anything goes wrong (including automatic retries for flaky networks).
+
+> **Tip:** After the first `npm install`, you can also run `npm run setup` instead of `node scripts/setup.js`.
+
+### Manual Setup (if you prefer)
+
+```bash
+npm install
 npm run compile
+```
 
-# Run linter
+### Run the extension
+
+Open this folder in VS Code and press `F5` (or run the **Run Extension** launch configuration). This compiles the extension and opens an Extension Development Host window with it loaded — open a `.md` file there and try the commands.
+
+### Build
+
+```bash
+npm run compile   # one-off build
+npm run watch      # incremental build on file change
+```
+
+### Lint
+
+```bash
 npm run lint
+```
 
-# Run unit tests
+### Testing
+
+```bash
 npm test
 ```
 
+This compiles the project, lints it, and runs the test suite inside a real VS Code instance via `@vscode/test-electron` (requires network access to download a VS Code test instance on first run). Tests cover:
+
+- The Markdown engine (`test/markdown/`): every supported Markdown feature, syntax-highlighting fallback for unknown languages, HTML sanitization, and resilience against malformed input.
+- Webview URI resolution (`test/preview/`): relative image path resolution against the source document, and safe fallback behavior on resolution failure.
+
+### Package
+
+```bash
+npm run package
+```
+
+Produces a `.vsix` file that can be installed via **Extensions: Install from VSIX...**.
+
 ---
 
-## ❌ Non-Goals (Explicitly Out of Scope)
+## Architecture Overview
 
-This extension is and will remain a **local-only, read-only Markdown viewer**. Features requiring GitHub API integration, Git tracking, cloud servers, or Markdown text editing commands are intentionally out of scope.
+The extension is split into three layers with a strict one-way dependency direction: `extension.ts` → commands/preview → Markdown engine. The Markdown engine has **no dependency on the VS Code API**, so it can be tested, reused, or swapped independently of the editor integration.
+
+```
+markdown-viewer/
+├── src/
+│   ├── extension.ts              Activation only: wires commands, providers, listeners. Stays small.
+│   ├── commands/                 Command registration (openPreview, openPreviewToSide).
+│   ├── markdown/                 The Markdown engine — no VS Code dependency.
+│   │   ├── MarkdownEngine.ts     Interface: render(source, options) -> RenderedMarkdown
+│   │   ├── MarkdownRenderer.ts   markdown-it based implementation (highlighting, task lists, sanitization).
+│   │   ├── MarkdownTypes.ts      Shared types/options/errors.
+│   │   └── MarkdownUtils.ts      Small pure helpers (slugify, escaping, URI classification).
+│   ├── preview/                  Owns Webview lifecycle; connects documents to the engine.
+│   │   ├── MarkdownPreviewProvider.ts
+│   │   ├── WebviewContent.ts     Builds the HTML shell.
+│   │   └── WebviewSecurity.ts    CSP + nonce generation.
+│   └── utils/                    VS Code-specific helpers (URI resolution, document detection).
+├── media/                        Webview assets: preview.css, highlight-theme.css, preview.js.
+└── test/                         Mirrors src/ for markdown and preview layers.
+```
+
+**Responsibility rules**, enforced by convention:
+
+- `extension.ts` never contains rendering logic — only activation wiring.
+- The Markdown engine never imports `vscode` — resource resolution is injected via a callback (`MarkdownRenderOptions.resolveResourcePath`) supplied by the preview layer.
+- The preview provider never contains Markdown parsing logic — it only connects documents, the engine, and the Webview.
+
+This separation is what allows future capabilities (GitHub-flavored Markdown, Mermaid, math, a documentation graph, GitHub API integration) to be added as new engine implementations or new provider layers without rewriting the rendering core.
+
+---
+
+## Roadmap
+
+Deliberately **not** implemented in V0.1 (see [Non-Goals](#non-goals-for-v01)), but the architecture is intended to accommodate these without a rewrite:
+
+- GitHub-flavored Markdown extensions
+- Interactive/editable task lists
+- Mermaid diagram rendering
+- Math rendering
+- Frontmatter support
+- Git repository awareness and relative-document navigation
+- Broken-link detection and a Markdown document graph
+- GitHub API integration: repositories, issues, pull requests, Actions
+- Documentation validation/search
+
+### Non-Goals for V0.1
+
+To keep this release focused, the following are explicitly out of scope right now: GitHub API/auth/Actions, Git integration, an issue/PR viewer, a Markdown editor or formatting commands, a repository graph, documentation search, Mermaid, math rendering, publishing, cloud sync, AI features, remote/online rendering, and any external backend or server. This is a **local Markdown viewer**.

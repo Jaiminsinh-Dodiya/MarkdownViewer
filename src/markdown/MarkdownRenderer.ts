@@ -50,7 +50,9 @@ export class MarkdownItEngine implements MarkdownEngine {
             return escapeHtml(code);
           }
           const trimmedLang = (lang || '').trim();
-          if (trimmedLang.toLowerCase() === 'mermaid' || trimmedLang.toLowerCase() === 'mermaid.js') {
+          // Diagram / special languages handled by dedicated fence renderers — skip silently.
+          const DIAGRAM_LANGS = new Set(['mermaid', 'math', 'latex', 'katex']);
+          if (DIAGRAM_LANGS.has(trimmedLang.toLowerCase())) {
             return escapeHtml(code);
           }
           if (trimmedLang && hljs.getLanguage(trimmedLang)) {
@@ -95,17 +97,18 @@ export class MarkdownItEngine implements MarkdownEngine {
     const emoji = require('markdown-it-emoji');
     md.use(emoji.full);
 
-    const mark = require('markdown-it-mark');
-    md.use(mark);
-
-    const ins = require('markdown-it-ins');
-    md.use(ins);
-
-    const deflist = require('markdown-it-deflist');
-    md.use(deflist);
-
-    const abbr = require('markdown-it-abbr');
-    md.use(abbr);
+    // Temporarily disabled due to npm install hanging
+    // const mark = require('markdown-it-mark');
+    // md.use(mark);
+    
+    // const ins = require('markdown-it-ins');
+    // md.use(ins);
+    
+    // const deflist = require('markdown-it-deflist');
+    // md.use(deflist);
+    
+    // const abbr = require('markdown-it-abbr');
+    // md.use(abbr);
     
     let extractedFrontmatter: string | undefined;
     const frontMatter = require('markdown-it-front-matter');
@@ -128,7 +131,8 @@ export class MarkdownItEngine implements MarkdownEngine {
         const token = tokens[idx];
         const info = token.info ? String(token.info).trim() : '';
         if (info === 'mermaid') {
-          return `<div class="mermaid">${escapeHtml(token.content)}</div>`;
+          // Do NOT escape — mermaid.js must receive the raw diagram source.
+          return `<div class="mermaid">${token.content}</div>`;
         }
         return defaultFence(tokens, idx, opts, _env, self);
       };
@@ -145,7 +149,21 @@ export class MarkdownItEngine implements MarkdownEngine {
     if (options.sanitizeHtml) {
       try {
         html = DOMPurify.sanitize(html, {
-          ADD_ATTR: ['target', 'rel', 'checked', 'disabled', 'data-callout', 'data-line', 'data-external-link'],
+          ADD_TAGS: [
+            // Callout container divs and SVG icons
+            'svg', 'path', 'circle', 'line', 'rect', 'polyline', 'polygon',
+            'ellipse', 'g', 'defs', 'use', 'symbol'
+          ],
+          ADD_ATTR: [
+            'target', 'rel', 'checked', 'disabled',
+            'data-callout', 'data-line', 'data-external-link',
+            // SVG presentation attributes
+            'viewBox', 'fill', 'stroke', 'stroke-width', 'stroke-linecap',
+            'stroke-linejoin', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r',
+            'rx', 'ry', 'x', 'y', 'width', 'height', 'xmlns',
+            'points', 'd'
+          ],
+          FORBID_ATTR: [],
           ALLOW_UNKNOWN_PROTOCOLS: false
         });
       } catch (err) {
@@ -259,7 +277,7 @@ export class MarkdownItEngine implements MarkdownEngine {
       ((tokens, idx, opts, _env, self) => self.renderToken(tokens, idx, opts));
 
     md.renderer.rules.table_open = (tokens, idx, opts, env, self): string =>
-      `<div class="markdown-viewer-table-wrapper">${defaultOpen(tokens, idx, opts, env, self)}`;
+      `<div class="table-wrapper">${defaultOpen(tokens, idx, opts, env, self)}`;
     md.renderer.rules.table_close = (tokens, idx, opts, env, self): string =>
       `${defaultClose(tokens, idx, opts, env, self)}</div>`;
   }
