@@ -50,6 +50,9 @@ export class MarkdownItEngine implements MarkdownEngine {
             return escapeHtml(code);
           }
           const trimmedLang = (lang || '').trim();
+          if (trimmedLang.toLowerCase() === 'mermaid' || trimmedLang.toLowerCase() === 'mermaid.js') {
+            return escapeHtml(code);
+          }
           if (trimmedLang && hljs.getLanguage(trimmedLang)) {
             try {
               return hljs.highlight(code, { language: trimmedLang, ignoreIllegals: true }).value;

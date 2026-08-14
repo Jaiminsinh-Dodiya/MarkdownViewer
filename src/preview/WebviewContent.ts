@@ -122,8 +122,8 @@ export function getWebviewHtml(
     </div>
     ${initialStatsHtml}
   </div>
-  ${mermaidScriptTag}
   <script nonce="${nonce}" src="${scriptUri}"></script>
+  ${mermaidScriptTag}
 </body>
 </html>`;
 }

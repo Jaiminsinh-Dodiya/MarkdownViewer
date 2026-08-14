@@ -533,25 +533,29 @@
     }
   }
 
+  function safeRun(fn) {
+    try {
+      fn();
+    } catch (err) {
+      console.error('[MarkdownViewer] Initializer error:', err);
+    }
+  }
+
+  function initAll() {
+    safeRun(initCopyButtons);
+    safeRun(initLightbox);
+    safeRun(initCalloutToggles);
+    safeRun(initMermaid);
+    safeRun(initTocControls);
+    safeRun(initFindBar);
+    safeRun(setupScrollSpy);
+  }
+
   // ── Initialize Everything ───────────────────────────────────────────────
 
-  document.addEventListener('DOMContentLoaded', () => {
-    initCopyButtons();
-    initLightbox();
-    initCalloutToggles();
-    initMermaid();
-    initTocControls();
-    initFindBar();
-    setupScrollSpy();
-  });
+  document.addEventListener('DOMContentLoaded', initAll);
 
   if (document.readyState !== 'loading') {
-    initCopyButtons();
-    initLightbox();
-    initCalloutToggles();
-    initMermaid();
-    initTocControls();
-    initFindBar();
-    setupScrollSpy();
+    initAll();
   }
 })();
