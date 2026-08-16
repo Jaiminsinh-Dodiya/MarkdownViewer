@@ -267,13 +267,17 @@
 
   function initCalloutToggles() {
     document.querySelectorAll('.mv-callout.is-collapsible .mv-callout-title').forEach((title) => {
+      // Prevent multiple listeners if initCalloutToggles is called repeatedly
+      if (title.hasAttribute('data-toggle-init')) return;
+      title.setAttribute('data-toggle-init', 'true');
+      
       title.style.cursor = 'pointer';
-      title.onclick = () => {
+      title.addEventListener('click', (e) => {
         const callout = title.closest('.mv-callout');
         if (callout) {
           callout.classList.toggle('is-collapsed');
         }
-      };
+      });
     });
   }
 

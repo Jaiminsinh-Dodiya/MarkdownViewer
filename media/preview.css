@@ -63,16 +63,12 @@ body {
   color: var(--mv-text-normal);
   background-color: var(--mv-bg-primary);
   
-  /* Centered layout */
-  margin: 0 auto;
-  max-width: var(--markdown-viewer-max-width);
-  padding: 32px 48px 64px 48px;
+  /* Reset body */
+  margin: 0;
+  padding: 0;
   
   /* Smooth scroll */
   scroll-behavior: smooth;
-  
-  /* Content fade-in animation */
-  animation: fadeIn var(--mv-anim-moderate) forwards;
   
   /* Subpixel rendering */
   -webkit-font-smoothing: antialiased;
@@ -298,11 +294,11 @@ blockquote > :last-child {
   transition: transform var(--mv-anim-fast);
 }
 
-.mv-callout-fold svg {
-  width: 14px;
-  height: 14px;
-  fill: currentColor;
+.mv-callout-fold {
+  display: inline-block;
   opacity: 0.6;
+  font-size: 0.9em;
+  transition: transform var(--mv-anim-fast);
 }
 
 .mv-callout.is-collapsed .mv-callout-fold {
@@ -781,7 +777,7 @@ hr {
 .mv-find-bar {
   position: fixed;
   top: 12px;
-  right: 60px;
+  right: 104px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -930,6 +926,10 @@ mark.mv-search-hit.active {
 
 /* Adjust main content layout when TOC is open */
 .mv-main-wrapper {
+  margin: 0 auto;
+  max-width: var(--markdown-viewer-max-width);
+  padding: 32px 48px 64px 48px;
+  animation: fadeIn var(--mv-anim-moderate) forwards;
   transition: margin-right var(--mv-anim-moderate) ease;
 }
 

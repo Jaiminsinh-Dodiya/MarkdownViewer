@@ -26,7 +26,7 @@ export function buildContentSecurityPolicy(webview: vscode.Webview, nonce: strin
   return [
     `default-src 'none'`,
     `img-src ${webview.cspSource} https: data:`,
-    `style-src ${webview.cspSource} 'nonce-${nonce}' 'unsafe-inline'`,
+    `style-src ${webview.cspSource} 'unsafe-inline'`,
     `script-src 'nonce-${nonce}'`,
     `font-src ${webview.cspSource} data:`
   ].join('; ');

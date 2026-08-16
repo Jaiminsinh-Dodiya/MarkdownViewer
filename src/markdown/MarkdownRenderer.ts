@@ -152,7 +152,13 @@ export class MarkdownItEngine implements MarkdownEngine {
           ADD_TAGS: [
             // Callout container divs and SVG icons
             'svg', 'path', 'circle', 'line', 'rect', 'polyline', 'polygon',
-            'ellipse', 'g', 'defs', 'use', 'symbol'
+            'ellipse', 'g', 'defs', 'use', 'symbol',
+            // KaTeX / MathML tags
+            'math', 'mi', 'mn', 'mo', 'ms', 'mspace', 'mtext', 'menclose',
+            'merror', 'mfenced', 'mfrac', 'mglyph', 'mlabeledtr', 'mmultiscripts',
+            'mover', 'mpadded', 'mphantom', 'mroot', 'mrow', 'msqrt', 'mstyle',
+            'msub', 'msubsup', 'msup', 'mtable', 'mtd', 'mtr', 'munder',
+            'munderover', 'semantics', 'annotation', 'annotation-xml'
           ],
           ADD_ATTR: [
             'target', 'rel', 'checked', 'disabled',
@@ -161,7 +167,10 @@ export class MarkdownItEngine implements MarkdownEngine {
             'viewBox', 'fill', 'stroke', 'stroke-width', 'stroke-linecap',
             'stroke-linejoin', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r',
             'rx', 'ry', 'x', 'y', 'width', 'height', 'xmlns',
-            'points', 'd'
+            'points', 'd',
+            // KaTeX attributes
+            'aria-hidden', 'mathvariant', 'mathcolor', 'mathbackground', 
+            'mathsize', 'display'
           ],
           FORBID_ATTR: [],
           ALLOW_UNKNOWN_PROTOCOLS: false
