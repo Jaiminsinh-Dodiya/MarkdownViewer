@@ -196,18 +196,15 @@ This separation is what allows future capabilities (GitHub-flavored Markdown, Me
 
 ## Roadmap
 
-Deliberately **not** implemented in V0.1 (see [Non-Goals](#non-goals-for-v01)), but the architecture is intended to accommodate these without a rewrite:
+Deliberately **not** implemented in V0.3 (see [Non-Goals](#non-goals-for-v03)), but the architecture is intended to accommodate these without a rewrite:
 
-- GitHub-flavored Markdown extensions
+- GitHub-flavored Markdown extensions (like advanced tables or citations)
 - Interactive/editable task lists
-- Mermaid diagram rendering
-- Math rendering
-- Frontmatter support
 - Git repository awareness and relative-document navigation
 - Broken-link detection and a Markdown document graph
 - GitHub API integration: repositories, issues, pull requests, Actions
 - Documentation validation/search
 
-### Non-Goals for V0.1
+### Non-Goals for V0.3
 
-To keep this release focused, the following are explicitly out of scope right now: GitHub API/auth/Actions, Git integration, an issue/PR viewer, a Markdown editor or formatting commands, a repository graph, documentation search, Mermaid, math rendering, publishing, cloud sync, AI features, remote/online rendering, and any external backend or server. This is a **local Markdown viewer**.
+To keep this release focused, the following are explicitly out of scope right now: GitHub API/auth/Actions, Git integration, an issue/PR viewer, a Markdown editor or formatting commands, a repository graph, documentation search, publishing, cloud sync, AI features, remote/online rendering, and any external backend or server. This is a **local Markdown viewer**.

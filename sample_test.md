@@ -158,7 +158,6 @@ The HTML standard is maintained by W3C.
 Click any image in the preview to pop it open into a centered dark overlay modal. Press `Esc` or click anywhere on the backdrop to dismiss:
 
 ![Sample Image](https://picsum.photos/800/350)
-bfggf
 ---
 
 ## 📊 11. Document Statistics Footer

@@ -4,12 +4,13 @@
 
 ---
 
-## 🐞 v0.3.0 Remaining Bugs (To Fix Next)
+## 🐞 v0.3.0 Fixed Bugs
 
-- [ ] **Callout Collapse**: Clicking the callout title does not collapse the content. Needs JS event listener or CSS checkbox hack to toggle `.is-collapsed` class.
-- [ ] **Image Lightbox Position**: The fullscreen zoomed image is not centered; it opens in the bottom-right corner. Need to fix the flexbox/absolute positioning.
-- [ ] **Find Bar Position**: The search bar is floating awkwardly below the properties block instead of fixed to the top right toolbar.
-- [ ] **Math Equation Styling**: Block and inline KaTeX math formulas are completely unstyled and mangled (likely missing the KaTeX CSS import in WebviewContent).
+- [x] **Callout Collapse**: Fixed JS event listeners and CSS rotation.
+- [x] **Image Lightbox Position**: Fixed flexbox/absolute positioning by removing transforms from body.
+- [x] **Find Bar Position**: Repositioned to avoid overlapping the toolbar buttons.
+- [x] **Math Equation Styling**: Fixed CSP nonce blocking KaTeX inline styles.
+- [x] **TOC Sidebar Layout**: Changed TOC to a pure overlay (z-index 120) to prevent layout shifting and toolbar overlapping.
 
 ---
 
