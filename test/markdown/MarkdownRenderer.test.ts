@@ -36,9 +36,9 @@ suite('MarkdownItEngine', () => {
 
   test('renders unordered, ordered, and nested lists', () => {
     const result = render('- A\n- B\n  - Nested\n\n1. First\n2. Second');
-    assert.match(result.html, /<ul[^>]*>[\s\S]*<li>A<\/li>/);
-    assert.match(result.html, /<li>Nested<\/li>/);
-    assert.match(result.html, /<ol[^>]*>[\s\S]*<li>First<\/li>/);
+    assert.match(result.html, /<ul[^>]*>[\s\S]*<li[^>]*>A<\/li>/);
+    assert.match(result.html, /<li[^>]*>Nested<\/li>/);
+    assert.match(result.html, /<ol[^>]*>[\s\S]*<li[^>]*>First<\/li>/);
   });
 
   test('renders GitHub-style task lists as display-only checkboxes', () => {
@@ -92,7 +92,7 @@ suite('MarkdownItEngine', () => {
     const result = render(
       '| Left | Center | Right |\n|:-----|:------:|------:|\n| A | B | C |'
     );
-    assert.match(result.html, /<div class="markdown-viewer-table-wrapper">[\s\S]*<table[^>]*>/);
+    assert.match(result.html, /<div class="table-wrapper">[\s\S]*<table[^>]*>/);
     assert.match(result.html, /style="text-align:center"/);
     assert.match(result.html, /style="text-align:right"/);
   });
@@ -178,7 +178,7 @@ suite('MarkdownItEngine', () => {
   });
 
   test('renders mark, ins, deflist, and abbr syntax extensions', () => {
-    const source = '==highlight== ++inserted++\n\nTerm\n: Definition\n\n*[HTML]: HyperText';
+    const source = '==highlight== ++inserted++\n\nTerm\n: Definition\n\nThis is HTML.\n\n*[HTML]: HyperText';
     const result = render(source);
     assert.match(result.html, /<mark>highlight<\/mark>/);
     assert.match(result.html, /<ins>inserted<\/ins>/);

@@ -97,18 +97,17 @@ export class MarkdownItEngine implements MarkdownEngine {
     const emoji = require('markdown-it-emoji');
     md.use(emoji.full);
 
-    // Temporarily disabled due to npm install hanging
-    // const mark = require('markdown-it-mark');
-    // md.use(mark);
-    
-    // const ins = require('markdown-it-ins');
-    // md.use(ins);
-    
-    // const deflist = require('markdown-it-deflist');
-    // md.use(deflist);
-    
-    // const abbr = require('markdown-it-abbr');
-    // md.use(abbr);
+    const mark = require('markdown-it-mark');
+    md.use(mark);
+
+    const ins = require('markdown-it-ins');
+    md.use(ins);
+
+    const deflist = require('markdown-it-deflist');
+    md.use(deflist);
+
+    const abbr = require('markdown-it-abbr');
+    md.use(abbr);
     
     let extractedFrontmatter: string | undefined;
     const frontMatter = require('markdown-it-front-matter');
