@@ -930,7 +930,6 @@ mark.mv-search-hit.active {
   max-width: var(--markdown-viewer-max-width);
   padding: 32px 48px 64px 48px;
   animation: fadeIn var(--mv-anim-moderate) forwards;
-  transition: margin-right var(--mv-anim-moderate) ease;
 }
 
 /* ==========================================================================

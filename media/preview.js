@@ -384,9 +384,7 @@
     function toggleToc() {
       if (!sidebar) { return; }
       const isOpen = sidebar.classList.toggle('open');
-      if (mainWrapper) {
-        mainWrapper.style.marginRight = isOpen ? '260px' : '0';
-      }
+      document.body.classList.toggle('toc-open', isOpen);
     }
 
     if (toggleBtn) { toggleBtn.addEventListener('click', toggleToc); }
