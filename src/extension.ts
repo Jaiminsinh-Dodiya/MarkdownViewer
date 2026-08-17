@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 
+import { exportHtmlCommand } from './commands/exportHtml';
 import { registerOpenPreviewCommand } from './commands/openPreview';
 import { registerOpenPreviewToSideCommand } from './commands/openPreviewToSide';
 import { MarkdownItEngine } from './markdown/MarkdownRenderer';
@@ -9,9 +10,7 @@ import { isMarkdownDocument } from './utils/FileUtils';
 /**
  * Extension activation.
  *
- * This function is deliberately small: its only job is wiring together
- * the engine, the preview provider, commands, and event listeners.
- * It must never contain rendering or Webview-building logic itself.
+ * Wires together the engine, preview provider, commands, and event listeners.
  */
 export function activate(context: vscode.ExtensionContext): void {
   const engine = new MarkdownItEngine();
@@ -21,6 +20,12 @@ export function activate(context: vscode.ExtensionContext): void {
   registerOpenPreviewToSideCommand(context, provider);
 
   context.subscriptions.push(
+    vscode.commands.registerCommand('markdownViewer.exportHtml', (uri?: vscode.Uri) => {
+      void exportHtmlCommand(engine, context, uri);
+    })
+  );
+
+  context.subscriptions.push(
     vscode.workspace.onDidChangeTextDocument((event) => {
       if (isMarkdownDocument(event.document)) {
         provider.onDocumentChanged(event.document);
@@ -28,8 +33,17 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   );
 
-  // Re-render on configuration changes so toggling settings like
-  // syntaxHighlighting or allowHtml takes effect without reopening the panel.
+  // Editor -> Preview scroll sync listener
+  context.subscriptions.push(
+    vscode.window.onDidChangeTextEditorVisibleRanges((event) => {
+      if (isMarkdownDocument(event.textEditor.document) && event.visibleRanges.length > 0) {
+        const topVisibleLine = event.visibleRanges[0].start.line + 1; // 1-indexed
+        provider.postScrollToLine(event.textEditor.document.uri, topVisibleLine);
+      }
+    })
+  );
+
+  // Re-render on configuration changes
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration('markdownViewer')) {

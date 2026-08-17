@@ -1,7 +1,7 @@
 # Markdown Viewer — Project Documentation
 
-> **Version**: 0.1.0 (Checkpoint)
-> **Last Updated**: 2026-08-10
+> **Version**: 0.3.0
+> **Last Updated**: 2026-08-14
 
 ---
 

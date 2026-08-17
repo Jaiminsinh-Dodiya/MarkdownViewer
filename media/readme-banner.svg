@@ -1,0 +1,84 @@
+<svg width="1280" height="320" viewBox="0 0 1280 320" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#181825"/>
+      <stop offset="100%" stop-color="#11111a"/>
+    </linearGradient>
+    <linearGradient id="accentText" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#9b8cf7"/>
+      <stop offset="100%" stop-color="#7f6df2"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7f6df2" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#7f6df2" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="panelHeader" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#23233a"/>
+      <stop offset="100%" stop-color="#1c1c2c"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1280" height="320" fill="url(#bg)"/>
+  <circle cx="960" cy="120" r="260" fill="url(#glow)"/>
+
+  <!-- subtle grid texture -->
+  <g stroke="#ffffff" stroke-opacity="0.03">
+    <line x1="0" y1="80" x2="1280" y2="80"/>
+    <line x1="0" y1="160" x2="1280" y2="160"/>
+    <line x1="0" y1="240" x2="1280" y2="240"/>
+  </g>
+
+  <!-- Left: wordmark -->
+  <g transform="translate(72,0)">
+    <text x="0" y="128" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="52" font-weight="700" fill="#f2f2f5">Markdown</text>
+    <text x="0" y="186" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="52" font-weight="700" fill="url(#accentText)">Viewer</text>
+    <rect x="2" y="204" width="128" height="6" rx="3" fill="#7f6df2"/>
+    <text x="0" y="246" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="19" fill="#9a9ab0">A clean, fast, secure Markdown preview</text>
+    <text x="0" y="272" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="19" fill="#9a9ab0">for Visual Studio Code</text>
+  </g>
+
+  <!-- Right: mock preview window -->
+  <g transform="translate(700,44)">
+    <rect x="0" y="0" width="500" height="232" rx="14" fill="#15151f" stroke="#2c2c40" stroke-width="1.5"/>
+    <rect x="0" y="0" width="500" height="34" rx="14" fill="url(#panelHeader)"/>
+    <rect x="0" y="20" width="500" height="14" fill="url(#panelHeader)"/>
+    <circle cx="22" cy="17" r="6" fill="#ff5f57"/>
+    <circle cx="42" cy="17" r="6" fill="#febc2e"/>
+    <circle cx="62" cy="17" r="6" fill="#28c840"/>
+    <text x="250" y="21" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#7d7d92" text-anchor="middle">README.md — Preview</text>
+
+    <!-- heading -->
+    <rect x="28" y="56" width="180" height="14" rx="3" fill="#e6e6ec"/>
+    <!-- paragraph lines -->
+    <rect x="28" y="84" width="300" height="8" rx="3" fill="#5b5b70"/>
+    <rect x="28" y="100" width="260" height="8" rx="3" fill="#5b5b70"/>
+
+    <!-- highlighted / mark chip -->
+    <rect x="28" y="118" width="72" height="16" rx="3" fill="#3a3324"/>
+    <text x="64" y="130" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="10" fill="#e8d27a" text-anchor="middle">highlight</text>
+
+    <!-- callout block -->
+    <rect x="28" y="146" width="444" height="34" rx="6" fill="#241f3a"/>
+    <rect x="28" y="146" width="4" height="34" rx="2" fill="#7f6df2"/>
+    <circle cx="46" cy="163" r="7" fill="none" stroke="#c9a6f7" stroke-width="1.5"/>
+    <text x="46" y="167" font-family="Georgia, serif" font-size="10" fill="#c9a6f7" text-anchor="middle" font-style="italic">i</text>
+    <text x="62" y="167" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#c9c2ef">Callouts, math, mermaid &amp; more — rendered natively</text>
+
+    <!-- code block -->
+    <rect x="28" y="190" width="444" height="28" rx="6" fill="#0f0f18"/>
+    <circle cx="42" cy="204" r="3" fill="#7f6df2"/>
+    <text x="54" y="208" font-family="Consolas, Menlo, monospace" font-size="11" fill="#8f9bd4">const preview = render(markdown);</text>
+  </g>
+
+  <!-- floating TOC chip -->
+  <g transform="translate(1218,60)">
+    <rect x="-70" y="-16" width="70" height="132" rx="10" fill="#1a1a28" stroke="#2c2c40"/>
+    <rect x="-58" y="0" width="46" height="6" rx="3" fill="#7f6df2"/>
+    <rect x="-58" y="16" width="34" height="5" rx="2.5" fill="#4c4c62"/>
+    <rect x="-52" y="30" width="28" height="5" rx="2.5" fill="#3a3a4e"/>
+    <rect x="-58" y="46" width="40" height="5" rx="2.5" fill="#4c4c62"/>
+    <rect x="-52" y="60" width="24" height="5" rx="2.5" fill="#3a3a4e"/>
+    <rect x="-58" y="76" width="36" height="5" rx="2.5" fill="#4c4c62"/>
+    <rect x="-52" y="90" width="30" height="5" rx="2.5" fill="#3a3a4e"/>
+  </g>
+</svg>

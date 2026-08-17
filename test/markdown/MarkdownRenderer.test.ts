@@ -21,7 +21,7 @@ suite('MarkdownItEngine', () => {
 
   test('renders paragraphs as separate <p> tags', () => {
     const result = render('First paragraph.\n\nSecond paragraph.');
-    const matches = result.html.match(/<p>/g);
+    const matches = result.html.match(/<p[^>]*>/g);
     assert.strictEqual(matches?.length, 2);
   });
 
@@ -36,9 +36,9 @@ suite('MarkdownItEngine', () => {
 
   test('renders unordered, ordered, and nested lists', () => {
     const result = render('- A\n- B\n  - Nested\n\n1. First\n2. Second');
-    assert.match(result.html, /<ul>[\s\S]*<li>A<\/li>/);
-    assert.match(result.html, /<li>Nested<\/li>/);
-    assert.match(result.html, /<ol>[\s\S]*<li>First<\/li>/);
+    assert.match(result.html, /<ul[^>]*>[\s\S]*<li[^>]*>A<\/li>/);
+    assert.match(result.html, /<li[^>]*>Nested<\/li>/);
+    assert.match(result.html, /<ol[^>]*>[\s\S]*<li[^>]*>First<\/li>/);
   });
 
   test('renders GitHub-style task lists as display-only checkboxes', () => {
@@ -73,7 +73,7 @@ suite('MarkdownItEngine', () => {
 
   test('renders blockquotes including nested blockquotes', () => {
     const result = render('> Outer\n>\n> > Inner');
-    assert.match(result.html, /<blockquote>[\s\S]*<blockquote>[\s\S]*Inner/);
+    assert.match(result.html, /<blockquote[^>]*>[\s\S]*<blockquote[^>]*>[\s\S]*Inner/);
   });
 
   test('renders fenced code blocks with syntax highlighting for known languages', () => {
@@ -92,14 +92,14 @@ suite('MarkdownItEngine', () => {
     const result = render(
       '| Left | Center | Right |\n|:-----|:------:|------:|\n| A | B | C |'
     );
-    assert.match(result.html, /<div class="markdown-viewer-table-wrapper">[\s\S]*<table>/);
+    assert.match(result.html, /<div class="table-wrapper">[\s\S]*<table[^>]*>/);
     assert.match(result.html, /style="text-align:center"/);
     assert.match(result.html, /style="text-align:right"/);
   });
 
   test('renders horizontal rules', () => {
     const result = render('above\n\n---\n\nbelow');
-    assert.match(result.html, /<hr>/);
+    assert.match(result.html, /<hr[^>]*>/);
   });
 
   test('does not crash on malformed/unusual input', () => {
@@ -122,7 +122,7 @@ suite('MarkdownItEngine', () => {
 
   test('appends a jump-link permalink anchor after each heading', () => {
     const result = render('## Getting Started');
-    assert.match(result.html, /<h2 id="getting-started">Getting Started<a[^>]*href="#getting-started"[^>]*>#<\/a><\/h2>/);
+    assert.match(result.html, /<h2[^>]*id="getting-started"[^>]*>Getting Started<a[^>]*href="#getting-started"[^>]*>#<\/a><\/h2>/);
   });
 
   test('labels fenced code blocks with a friendly display name for known languages', () => {
@@ -169,5 +169,28 @@ suite('MarkdownItEngine', () => {
   test('renders mermaid fenced blocks as <div class="mermaid">', () => {
     const result = render('```mermaid\ngraph TD;\n    A-->B;\n```');
     assert.match(result.html, /<div class="mermaid">graph TD;[\s\S]*<\/div>/);
+  });
+
+  test('stamps data-line attributes on block elements when line tagging is enabled', () => {
+    const result = render('# Heading\n\nParagraph text.', { enableLineTagging: true });
+    assert.match(result.html, /<h1[^>]*data-line="1"/);
+    assert.match(result.html, /<p[^>]*data-line="3"/);
+  });
+
+  test('renders mark, ins, deflist, and abbr syntax extensions', () => {
+    const source = '==highlight== ++inserted++\n\nTerm\n: Definition\n\nThis is HTML.\n\n*[HTML]: HyperText';
+    const result = render(source);
+    assert.match(result.html, /<mark>highlight<\/mark>/);
+    assert.match(result.html, /<ins>inserted<\/ins>/);
+    assert.match(result.html, /<dl[^>]*>[\s\S]*<dt[^>]*>Term<\/dt>[\s\S]*<dd[^>]*>Definition<\/dd>/);
+    assert.match(result.html, /<abbr title="HyperText">HTML<\/abbr>/);
+  });
+
+  test('computes accurate document statistics', () => {
+    const source = '# Sample Document\n\nThis is a sample markdown document with seven words.';
+    const result = render(source);
+    assert.strictEqual(result.stats.words, 11);
+    assert.strictEqual(result.stats.lines, 3);
+    assert.strictEqual(result.stats.readingTimeMin, 1);
   });
 });
