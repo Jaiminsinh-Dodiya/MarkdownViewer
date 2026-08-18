@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="media/readme-banner.svg" alt="Markdown Viewer — a clean, fast, secure Markdown preview for VS Code" width="100%" />
+<img src="media/readme-banner.png" alt="Markdown Viewer — a clean, fast, secure Markdown preview for VS Code" width="100%" />
 </p>
 
 <p align="center">

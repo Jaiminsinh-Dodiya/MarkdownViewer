@@ -4,6 +4,10 @@
   "description": "A clean, fast, secure preview for Markdown files, rendered natively inside VS Code.",
   "version": "0.3.0",
   "publisher": "jaiminsinh-dodiya",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Jaiminsinh-Dodiya/MarkdownViewer.git"
+  },
   "license": "MIT",
   "engines": {
     "vscode": "^1.85.0"
