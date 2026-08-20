@@ -150,6 +150,7 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
+    "dev": "tsc -watch -p ./",
     "lint": "eslint src test",
     "pretest": "npm run compile && npm run lint",
     "test": "node ./out/test/runTest.js",
