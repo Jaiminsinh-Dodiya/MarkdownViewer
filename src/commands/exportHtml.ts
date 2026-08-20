@@ -94,7 +94,7 @@ function readAsset(filePath: string): string {
   }
 }
 
-interface ExportOptions {
+export interface ExportOptions {
   title: string;
   bodyHtml: string;
   previewCss: string;
@@ -102,15 +102,26 @@ interface ExportOptions {
   katexCss: string;
   mermaidJs: string;
   stats: { words: number; chars: number; lines: number; readingTimeMin: number };
+  autoPrint?: boolean;
 }
 
-function generateStandaloneHtml(options: ExportOptions): string {
+export function generateStandaloneHtml(options: ExportOptions): string {
   const statsHtml = `<footer class="mv-stats-footer">
     <span>${options.stats.words} words</span> • 
     <span>${options.stats.chars} chars</span> • 
     <span>${options.stats.lines} lines</span> • 
     <span>${options.stats.readingTimeMin} min read</span>
   </footer>`;
+
+  const printScript = options.autoPrint
+    ? `<script>
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        window.print();
+      }, 300);
+    });
+  </script>`
+    : '';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -137,6 +148,7 @@ function generateStandaloneHtml(options: ExportOptions): string {
       mermaid.initialize({ startOnLoad: true, theme: 'dark', securityLevel: 'strict' });
     }
   </script>
+  ${printScript}
 </body>
 </html>`;
 }

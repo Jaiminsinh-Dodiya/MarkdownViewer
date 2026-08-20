@@ -599,7 +599,7 @@
     if (printBtn && !printBtn.hasAttribute('data-print-init')) {
       printBtn.setAttribute('data-print-init', 'true');
       printBtn.addEventListener('click', () => {
-        window.print();
+        vscode.postMessage({ type: 'print' });
       });
     }
   }
@@ -608,7 +608,7 @@
   document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
       e.preventDefault();
-      window.print();
+      vscode.postMessage({ type: 'print' });
     }
   });
 

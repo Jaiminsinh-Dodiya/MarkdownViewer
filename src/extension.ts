@@ -19,7 +19,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   registerOpenPreviewCommand(context, provider);
   registerOpenPreviewToSideCommand(context, provider);
-  registerPrintCommand(context, provider);
+  registerPrintCommand(context, engine);
 
   context.subscriptions.push(
     vscode.commands.registerCommand('markdownViewer.exportHtml', (uri?: vscode.Uri) => {

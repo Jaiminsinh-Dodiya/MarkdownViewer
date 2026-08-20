@@ -83,6 +83,8 @@ export class MarkdownPreviewProvider {
         this.openExternalLink(message.href);
       } else if (message?.type === 'revealLine' && typeof message.line === 'number') {
         this.handleRevealLineFromPreview(managed, message.line);
+      } else if (message?.type === 'print') {
+        void vscode.commands.executeCommand('markdownViewer.print', managed.documentUri);
       }
     });
 
