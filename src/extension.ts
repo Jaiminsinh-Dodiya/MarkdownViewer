@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { exportHtmlCommand } from './commands/exportHtml';
 import { registerOpenPreviewCommand } from './commands/openPreview';
 import { registerOpenPreviewToSideCommand } from './commands/openPreviewToSide';
+import { registerPrintCommand } from './commands/print';
 import { MarkdownItEngine } from './markdown/MarkdownRenderer';
 import { MarkdownPreviewProvider } from './preview/MarkdownPreviewProvider';
 import { isMarkdownDocument } from './utils/FileUtils';
@@ -18,6 +19,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   registerOpenPreviewCommand(context, provider);
   registerOpenPreviewToSideCommand(context, provider);
+  registerPrintCommand(context, provider);
 
   context.subscriptions.push(
     vscode.commands.registerCommand('markdownViewer.exportHtml', (uri?: vscode.Uri) => {
@@ -52,6 +54,13 @@ export function activate(context: vscode.ExtensionContext): void {
           provider.onDocumentChanged(document);
         }
       }
+    })
+  );
+
+  // Re-render previews when active color theme changes (e.g. Dark <-> Light)
+  context.subscriptions.push(
+    vscode.window.onDidChangeActiveColorTheme(() => {
+      provider.refreshAll();
     })
   );
 

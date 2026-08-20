@@ -165,6 +165,7 @@ export class MarkdownPreviewProvider {
       enableMath,
       enableMermaid,
       enableLineTagging: config.get<boolean>('scrollSync', true),
+      mathMacros: config.get<Record<string, string>>('mathMacros', {}),
       resolveResourcePath: (rawPath: string) =>
         resolveWebviewResourcePath(managed.panel.webview, document.uri, rawPath)
     };
@@ -245,6 +246,41 @@ export class MarkdownPreviewProvider {
       return;
     }
     void vscode.env.openExternal(uri);
+  }
+
+  /** Triggers the print dialog in the preview for the given document URI (or active preview). */
+  public printPreview(documentUri?: vscode.Uri): boolean {
+    if (documentUri) {
+      const managed = this.panels.get(documentUri.toString());
+      if (managed) {
+        managed.panel.webview.postMessage({ type: 'print' });
+        return true;
+      }
+    }
+    for (const managed of this.panels.values()) {
+      if (managed.panel.visible) {
+        managed.panel.webview.postMessage({ type: 'print' });
+        return true;
+      }
+    }
+    const first = this.panels.values().next().value;
+    if (first) {
+      first.panel.webview.postMessage({ type: 'print' });
+      return true;
+    }
+    return false;
+  }
+
+  /** Re-renders all currently open preview panels (e.g. on theme change). */
+  public refreshAll(): void {
+    for (const managed of this.panels.values()) {
+      void vscode.workspace.openTextDocument(managed.documentUri).then(
+        (doc) => {
+          this.renderInto(managed, doc);
+        },
+        () => {}
+      );
+    }
   }
 
   private clearDebounce(key: string): void {

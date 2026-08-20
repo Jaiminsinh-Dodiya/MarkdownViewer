@@ -705,37 +705,80 @@ hr {
    Print Styles
    ========================================================================== */
 @media print {
-  body {
-    background: white;
-    color: black;
-    max-width: 100%;
-    padding: 0;
+  @page {
+    margin: 1.5cm;
   }
-  
+
+  body {
+    background: white !important;
+    color: black !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .mv-main-wrapper {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    animation: none !important;
+  }
+
+  .mv-toolbar,
+  .mv-find-bar,
+  .mv-toc-sidebar,
+  .mv-stats-footer,
+  .markdown-viewer-warnings,
   .mv-copy-btn,
   .mv-callout-fold,
+  .mv-lightbox,
   h1 a[id], h2 a[id], h3 a[id], h4 a[id], h5 a[id], h6 a[id] {
     display: none !important;
   }
-  
+
+  /* Force collapsed callouts and frontmatter to be fully visible in print */
+  .mv-callout.is-collapsed .mv-callout-content,
+  .mv-frontmatter.is-collapsed .mv-frontmatter-content {
+    display: block !important;
+  }
+
   a {
     background-image: none !important;
-    color: black !important;
+    color: #111 !important;
     text-decoration: underline;
   }
-  
+
   pre, code {
     border: 1px solid #ddd;
-    background: #f9f9f9;
+    background: #f9f9f9 !important;
+    color: #222 !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
-  
+
   .mv-callout {
     border: 1px solid #ccc;
-    background: #fdfdfd;
+    background: #fdfdfd !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
-  
+
+  table {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  img {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    max-width: 100% !important;
+  }
+
   .mv-frontmatter {
     border: 1px solid #ccc;
+    background: #fafafa !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
 }
 

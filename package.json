@@ -42,6 +42,11 @@
         "command": "markdownViewer.exportHtml",
         "title": "Markdown Viewer: Export to Standalone HTML",
         "icon": "$(export)"
+      },
+      {
+        "command": "markdownViewer.print",
+        "title": "Markdown Viewer: Print / Save to PDF",
+        "icon": "$(printer)"
       }
     ],
     "menus": {
@@ -59,6 +64,14 @@
         },
         {
           "command": "markdownViewer.openPreviewToSide",
+          "when": "editorLangId == markdown"
+        },
+        {
+          "command": "markdownViewer.exportHtml",
+          "when": "editorLangId == markdown"
+        },
+        {
+          "command": "markdownViewer.print",
           "when": "editorLangId == markdown"
         }
       ]
@@ -103,6 +116,11 @@
           "type": "boolean",
           "default": true,
           "description": "Enable KaTeX math rendering for $inline$ and $$block$$ expressions."
+        },
+        "markdownViewer.mathMacros": {
+          "type": "object",
+          "default": {},
+          "description": "Custom LaTeX math macros for KaTeX (e.g. {\"\\\\RR\": \"\\\\mathbb{R}\"})."
         },
         "markdownViewer.scrollSync": {
           "type": "boolean",

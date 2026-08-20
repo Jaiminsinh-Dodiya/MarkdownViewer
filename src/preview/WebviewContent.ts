@@ -84,6 +84,7 @@ export function getWebviewHtml(
   const toolbarHtml = `<div class="mv-toolbar" id="mv-toolbar">
     ${options.showToc ? '<button type="button" class="mv-toolbar-btn" id="mv-toc-toggle" title="Toggle Table of Contents"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg></button>' : ''}
     <button type="button" class="mv-toolbar-btn" id="mv-search-toggle" title="Find in preview (Ctrl+F)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+    <button type="button" class="mv-toolbar-btn" id="mv-print-btn" title="Print / Save to PDF (Ctrl+P)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></button>
   </div>`;
 
   const tocSidebarHtml = options.showToc

@@ -193,4 +193,13 @@ suite('MarkdownItEngine', () => {
     assert.strictEqual(result.stats.lines, 3);
     assert.strictEqual(result.stats.readingTimeMin, 1);
   });
+
+  test('renders math equations and expands custom math macros', () => {
+    const result = render('Inline math $E = mc^2$ and custom macro $\\RR$', {
+      enableMath: true,
+      mathMacros: { '\\RR': '\\mathbb{R}' }
+    });
+    assert.match(result.html, /class="katex"/);
+    assert.match(result.html, /mathbb/);
+  });
 });

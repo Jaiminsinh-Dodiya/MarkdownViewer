@@ -93,6 +93,7 @@ See [Development](#development) — you can run the extension directly from an E
 | `Markdown Viewer: Open Preview` | Opens the preview in the active editor group. |
 | `Markdown Viewer: Open Preview to the Side` | Opens the preview beside the current editor. Also bound to `Ctrl+K V` / `Cmd+K V` and available as an icon in the editor toolbar. |
 | `Markdown Viewer: Export to Standalone HTML` | Renders the current document to a single self-contained `.html` file (inline CSS, bundled Mermaid/KaTeX) that you can open in any browser or share without VS Code. |
+| `Markdown Viewer: Print / Save to PDF` | Opens the system print / save-as-PDF dialog for the rendered preview. Also accessible via the printer icon in the preview toolbar or `Ctrl+P` / `Cmd+P`. |
 
 All commands require the active editor to hold a Markdown (`.md`) document; otherwise an informational message is shown instead of a broken preview.
 
@@ -108,6 +109,7 @@ All commands require the active editor to hold a Markdown (`.md`) document; othe
 | `markdownViewer.showFrontmatter` | `true` | Show YAML frontmatter as a properties card at the top of the preview. |
 | `markdownViewer.mermaid` | `true` | Enable Mermaid diagram rendering in fenced code blocks. |
 | `markdownViewer.math` | `true` | Enable KaTeX math rendering for `$inline$` and `$$block$$` expressions. |
+| `markdownViewer.mathMacros` | `{}` | Custom LaTeX math macros for KaTeX (e.g. `{"\\RR": "\\mathbb{R}"}`). |
 | `markdownViewer.scrollSync` | `true` | Synchronize scrolling bi-directionally between the editor and preview. |
 | `markdownViewer.showToc` | `true` | Show the interactive Table of Contents sidebar in the preview. |
 | `markdownViewer.showStats` | `true` | Show document statistics (word count, reading time) in the preview footer. |
@@ -140,6 +142,7 @@ On top of standard Markdown, the following are supported out of the box:
 | `Enter` / `↓` | Find bar open | Jump to next match |
 | `Shift+Enter` / `↑` | Find bar open | Jump to previous match |
 | `Esc` | Find bar open | Close the find bar |
+| `Ctrl+P` / `Cmd+P` | Inside the preview panel | Trigger Print / Save as PDF |
 
 ---
 

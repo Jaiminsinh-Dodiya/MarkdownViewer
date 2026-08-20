@@ -163,3 +163,9 @@ Click any image in the preview to pop it open into a centered dark overlay modal
 ## 📊 11. Document Statistics Footer
 
 Look at the bottom of this preview panel! The footer automatically displays your live document metrics: **word count**, **character count**, **line count**, and **estimated reading time** (`450 words • 3,200 chars • 75 lines • 2 min read`).
+
+---
+
+## 🖨️ 12. Print & Save as PDF
+
+Click the printer icon in the top-right toolbar or press `Ctrl+P` / `Cmd+P` (or run `Markdown Viewer: Print / Save to PDF` from the Command Palette). It opens the native print dialog formatted for print with clean margins, expanded callouts, and hidden UI controls.

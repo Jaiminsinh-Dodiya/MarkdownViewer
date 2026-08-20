@@ -115,7 +115,11 @@ export class MarkdownItEngine implements MarkdownEngine {
     
     if (options.enableMath) {
       const mk = require('@traptitech/markdown-it-katex');
-      md.use(mk, { throwOnError: false, errorColor: '#cc0000' });
+      md.use(mk, {
+        throwOnError: false,
+        errorColor: '#cc0000',
+        macros: options.mathMacros || {}
+      });
     }
 
     this.configureHeadingCapture(md, headings);

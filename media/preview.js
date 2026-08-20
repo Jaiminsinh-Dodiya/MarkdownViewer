@@ -61,6 +61,10 @@
       case 'scrollToLine':
         handleScrollToLine(message.line);
         break;
+
+      case 'print':
+        window.print();
+        break;
     }
   });
 
@@ -588,6 +592,26 @@
     }
   }
 
+  // ── Print Control (Print / Save as PDF) ───────────────────────────────────
+
+  function initPrintControl() {
+    const printBtn = document.getElementById('mv-print-btn');
+    if (printBtn && !printBtn.hasAttribute('data-print-init')) {
+      printBtn.setAttribute('data-print-init', 'true');
+      printBtn.addEventListener('click', () => {
+        window.print();
+      });
+    }
+  }
+
+  // Capture Ctrl+P / Cmd+P to trigger print
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+      e.preventDefault();
+      window.print();
+    }
+  });
+
   // ── Initialize Everything ───────────────────────────────────────────────
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -597,6 +621,7 @@
     initMermaid();
     initTocControls();
     initFindBar();
+    initPrintControl();
     setupScrollSpy();
   });
 
@@ -607,6 +632,8 @@
     initMermaid();
     initTocControls();
     initFindBar();
+    initPrintControl();
     setupScrollSpy();
   }
 })();
+

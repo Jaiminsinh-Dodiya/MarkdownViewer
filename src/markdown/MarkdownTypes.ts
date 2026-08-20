@@ -37,6 +37,8 @@ export interface MarkdownRenderOptions {
   enableMermaid: boolean;
   /** Whether to enable line tagging (data-line="L") for scroll sync. */
   enableLineTagging: boolean;
+  /** Optional custom LaTeX math macros for KaTeX (e.g. { "\\RR": "\\mathbb{R}" }). */
+  mathMacros?: Record<string, string>;
 }
 
 /** A single heading extracted from the rendered document. */

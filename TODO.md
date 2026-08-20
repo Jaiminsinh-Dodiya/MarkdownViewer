@@ -47,12 +47,16 @@
 
 ---
 
-## 🎯 Future Ideas (Local-Only Backlog)
-
-- [ ] **Print / Save as PDF**: Direct command to trigger system PDF print dialog.
-- [ ] **Custom Math Macros**: Support user-defined KaTeX LaTeX macros in settings.
+- [x] **Print / Save as PDF**: Direct command (`markdownViewer.print`), toolbar button, and `@media print` layout optimization.
+- [x] **Custom Math Macros**: User-defined KaTeX LaTeX macros in settings (`markdownViewer.mathMacros`).
+- [x] **Dynamic Theme Switching**: Automatic re-render on active color theme change.
 
 ---
+
+## 🎯 Future Ideas (Local-Only Backlog)
+
+- [ ] **Custom CSS snippet manager**: Multi-file custom stylesheet support.
+- [ ] **Table of Contents Export**: Copy or export TOC as markdown list.
 
 ## ❌ Non-Goals (Explicitly Out of Scope)
 

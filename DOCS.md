@@ -224,6 +224,14 @@ The Webview may only load local resources from:
 | `markdownViewer.syntaxHighlighting` | `boolean` | `true` | Enable syntax highlighting for fenced code blocks via highlight.js |
 | `markdownViewer.allowHtml` | `boolean` | `false` | Render raw HTML in Markdown source (sanitized via DOMPurify before display) |
 | `markdownViewer.maxContentWidth` | `number` | `900` | Maximum pixel width of rendered content for readability on wide monitors |
+| `markdownViewer.showFrontmatter` | `boolean` | `true` | Show YAML frontmatter as a properties card at the top of the preview |
+| `markdownViewer.mermaid` | `boolean` | `true` | Enable Mermaid diagram rendering in fenced code blocks |
+| `markdownViewer.math` | `boolean` | `true` | Enable KaTeX math rendering for `$inline$` and `$$block$$` expressions |
+| `markdownViewer.mathMacros` | `object` | `{}` | Custom LaTeX math macros for KaTeX (e.g. `{"\\RR": "\\mathbb{R}"}`) |
+| `markdownViewer.scrollSync` | `boolean` | `true` | Synchronize scrolling bi-directionally between editor and preview |
+| `markdownViewer.showToc` | `boolean` | `true` | Show the interactive Table of Contents sidebar in the preview |
+| `markdownViewer.showStats` | `boolean` | `true` | Show document statistics (word count, reading time) in preview footer |
+| `markdownViewer.customStyles` | `string` | `""` | Path to a custom CSS file to style the preview |
 
 Configuration changes are detected via `onDidChangeConfiguration` and trigger an immediate re-render of any open preview for the active document.
 
